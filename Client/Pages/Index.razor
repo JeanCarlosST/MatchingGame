@@ -1,0 +1,71 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.SignalR.Client
+@using MatchingGame.Shared
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+@if(EstaConectado)
+{
+    <div class="form-group">
+        <label>Nombre de usuario:</label>
+        <input @bind="Nombre"/>
+    </div>
+
+    <button type="button" class="btn btn-success btn-lg" @onclick="BuscarPartida" disabled="@(buscandoPartida)">
+        @if(buscandoPartida)
+        {
+            <span>Buscando partida...</span>
+        }
+        else
+        {
+            <span>Buscar partida</span>
+        }
+    </button>
+}
+else
+{
+    <span class="bg-danger">No estás conectado</span>
+}
+
+@code {
+    private HubConnection hubConnection;
+    private string Nombre;
+    private string Oponente;
+    private bool buscandoPartida = false;
+    private Partida partida;
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/peticion_hub"))
+            .Build();
+
+        hubConnection.On<int>("RecibirPartida", (partidaId) =>
+        {
+            Oponente = partidaId.ToString();
+            NavigationManager.NavigateTo($"/partida/{partidaId}/{Nombre}");
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+        StateHasChanged();
+    }
+
+    async Task BuscarPartida()
+    {
+        if (String.IsNullOrEmpty(Nombre))
+            return;
+
+        buscandoPartida = true;
+
+        await hubConnection.SendAsync("RecibirPeticion", Nombre, "partidaNormal");
+    }
+
+    public bool EstaConectado =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
+}
