@@ -65,9 +65,9 @@ namespace MatchingGame.Server.Hubs
             }
         }
 
-        public async Task RecibirParejaEncontrada(int id)
+        public async Task RecibirParejaEncontrada(int id, string usuario)
         {
-            partida = manejador.MarcarParejaEncontrada(id, Context.ConnectionId);
+            partida = manejador.MarcarParejaEncontrada(id, Context.ConnectionId, usuario);
 
             if(partida != null)
             {

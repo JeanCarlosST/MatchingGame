@@ -7,7 +7,7 @@
 
 @if (partidaEncontrada)
 {
-    <div class="row">
+    <div class="row d-flex justify-content-center">
 
         <div class="col-12 col-sm-10 col-md-7 col-lg-6 col-xl-4">
 
@@ -36,16 +36,15 @@
                 <button type="button" class="btn btn-warning btn-lg my-2" @onclick="BuscarOtraPartida">Buscar otra partida</button>
             }
 
-            <div class="row">
-                <h2>Parejas encontradas: @parejasEncontradas</h2>
-            </div>
-
-            <div class="row">
-                <h2>Tiempo: @tiempo</h2>
-            </div>
+        <div class="d-flex flex-column my-1">
+            <h3>Parejas encontradas: @parejasEncontradas</h3>
+            <h3>Puntos: @puntos</h3>
+            <h3>Tiempo: @tiempo</h3>
         </div>
 
-        <div class="overflow-auto col-md-12 col-lg-6 col-xl-8" style="height:450px">
+        </div>
+
+        <div class="overflow-auto col-md-12 col-lg-6 col-xl-4 mt-1" style="height:450px">
 
             <ol class="list-group">
 
@@ -85,6 +84,7 @@
     int lastAnimalIndex = -1;
     private HubConnection hubConnection;
     int parejasEncontradas = 0;
+    int puntos = 0;
 
     List<string> shuffledAnimals = new List<string>();
     List<string> animalEmoji = new List<string>()
@@ -198,7 +198,7 @@
 
     async Task MarcarParejaEncontrada()
     {
-        await hubConnection.SendAsync("RecibirParejaEncontrada", PartidaId);
+        await hubConnection.SendAsync("RecibirParejaEncontrada", PartidaId, Usuario);
     }
 
     void SetupGame()
@@ -207,6 +207,7 @@
         shuffledAnimals = animalEmoji.OrderBy(item => ran.Next()).ToList();
         tenthsOfSecondsElapsed = 0;
         parejasEncontradas = 0;
+        puntos = 0;
         lastAnimalFound = CaracterVacio;
         lastAnimalIndex = -1;
     }
@@ -227,6 +228,7 @@
                 .ToList();
 
             parejasEncontradas++;
+            puntos += CalcularPuntos();
             MarcarParejaEncontrada();
         }
         else
@@ -236,10 +238,19 @@
         }
     }
 
+    int CalcularPuntos()
+    {
+        int puntos = 200 - tenthsOfSecondsElapsed;
+
+        if (puntos <= 10)
+            return 10;
+
+        return puntos;
+    }
+
     void FinishGame()
     {
         timer.Stop();
-        //tiempo += " - Play Again?";
         partidaTerminada = true;
         partidaIniciada = false;
     }

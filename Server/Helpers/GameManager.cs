@@ -114,17 +114,11 @@ namespace MatchingGame.Server.Helpers
 
                 if (partida.GetAnimalesJugadorUno() == 0 && partida.GetAnimalesJugadorDos() == 0)
                     partida.Iniciada = true;
-
-                //while(!partida.Iniciada)
-                //{
-                //    partida = Partidas.Find(p => p.PartidaId == id);
-                //    await Task.Delay(25);
-                //}
             }
             return partida;
         }
 
-        public Partida MarcarParejaEncontrada(int id, string jugadorId)
+        public Partida MarcarParejaEncontrada(int id, string jugadorId, string jugadorNombre)
         {
             var partida = Partidas.Find(
                 p => p.PartidaId == id
@@ -132,9 +126,9 @@ namespace MatchingGame.Server.Helpers
 
             if(partida != null && !partida.Terminada)
             {
-                if (partida.JugadorUnoId == jugadorId)
+                if (partida.JugadorUnoId == jugadorId && partida.JugadorUnoNombre == jugadorNombre)
                     partida.SumarAnimalesJugadorUno();
-                else
+                else if (partida.JugadorDosId == jugadorId && partida.JugadorDosNombre == jugadorNombre)
                     partida.SumarAnimalesJugadorDos();
             }
 
