@@ -1,0 +1,154 @@
+﻿@page "/solo"
+@using MatchingGame.Shared;
+@using System.Timers;
+
+<div class="row d-flex justify-content-center">
+
+    <div class="col-12 col-sm-10 col-md-7 col-lg-6 col-xl-4">
+
+        <div class="container">
+
+            <div class="row">
+                @for (int i = 0; i < shuffledAnimals.Count; i++)
+                {
+                    int index = i;
+                    string animal = shuffledAnimals[index];
+                    <button type="button" class="btn btn-outline-dark col-3" disabled="@(!partidaIniciada)"
+                            @onclick="@(()=> ButtonClick(animal, index))">
+                        <h1>@animal</h1>
+                    </button>
+                }
+            </div>
+        </div>
+
+        @if (!partidaIniciada)
+        {
+            <button type="button" class="btn btn-success btn-lg col-lg-6 col-md-12 my-3" @onclick="IniciarPartida">Listo</button>
+        }
+
+        <div class="d-flex flex-column my-1">
+            <h3>Parejas encontradas: @parejasEncontradas</h3>
+            <h3>Puntos: @puntos</h3>
+            <h3>Tiempo: @tiempo</h3>
+        </div>
+
+    </div>
+
+</div>
+
+@code
+{
+    public bool partidaIniciada;
+    public bool partidaTerminada;
+
+    const string CaracterVacio = "\u200D";
+
+    List<string> movimientos = new();
+
+    Timer timer;
+    int tenthsOfSecondsElapsed = 0;
+    string tiempo;
+    string lastAnimalFound = CaracterVacio;
+    int lastAnimalIndex = -1;
+    int parejasEncontradas = 0;
+    int puntos = 0;
+
+    List<string> shuffledAnimals = new List<string>();
+    List<string> animalEmoji = new List<string>()
+{
+        "🐵","🐵",
+        "🐶","🐶",
+        "🐷","🐷",
+        "🐴","🐴",
+        "🐔","🐔",
+        "🦊","🦊",
+        "🐸","🐸",
+        "🐼","🐼"
+    };
+
+    protected override void OnInitialized()
+    {
+        timer = new Timer(100);
+        timer.Elapsed += Timer_Tick;
+
+        for (int i = 0; i < animalEmoji.Count; i++)
+            shuffledAnimals.Add(CaracterVacio);
+    }
+
+    void IniciarPartida()
+    {
+        partidaTerminada = false;
+        partidaIniciada = true;
+
+        SetupGame();
+        timer.Start();
+    }
+
+    void SetupGame()
+    {
+        Random ran = new Random();
+        shuffledAnimals = animalEmoji.OrderBy(item => ran.Next()).ToList();
+        tenthsOfSecondsElapsed = 0;
+        parejasEncontradas = 0;
+        puntos = 0;
+        lastAnimalFound = CaracterVacio;
+        lastAnimalIndex = -1;
+    }
+
+    void ButtonClick(string animal, int index)
+    {
+        if (lastAnimalFound == CaracterVacio)
+        {
+            lastAnimalFound = animal;
+            lastAnimalIndex = index;
+        }
+        else if (lastAnimalFound == animal && lastAnimalIndex != index)
+        {
+            lastAnimalFound = CaracterVacio;
+            lastAnimalIndex = -1;
+            shuffledAnimals = shuffledAnimals
+                .Select(a => a.Replace(animal, CaracterVacio))
+                .ToList();
+
+            puntos += CalcularPuntos();
+            parejasEncontradas++;
+
+            if(parejasEncontradas >= 8)
+            {
+                FinishGame();
+            }
+        }
+        else
+        {
+            lastAnimalFound = CaracterVacio;
+            lastAnimalIndex = -1;
+        }
+    }
+
+    int CalcularPuntos()
+    {
+        int puntos = 200 - tenthsOfSecondsElapsed;
+
+        if (puntos <= 10)
+            return 10;
+
+        return puntos;
+    }
+
+    void FinishGame()
+    {
+        timer.Stop();
+        partidaTerminada = true;
+        partidaIniciada = false;
+    }
+
+    private void Timer_Tick(object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            tenthsOfSecondsElapsed++;
+            tiempo = (tenthsOfSecondsElapsed / 10F).ToString("0.0s");
+            StateHasChanged();
+        });
+    }
+}

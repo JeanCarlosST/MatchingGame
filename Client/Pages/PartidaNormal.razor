@@ -26,15 +26,27 @@
                 </div>
             </div>
 
-            @if (!partidaIniciada && !jugadorDesconectado)
-            {
-                <button type="button" class="btn btn-success btn-lg my-4 mr-2" @onclick="IniciarPartida" disabled="@(buscandoPartida)">Listo</button>
-            }
+            <div class="row d-flex justify-content-between px-3 my-3">
 
-            @if (jugadorDesconectado || partidaTerminada)
-            {
-                <button type="button" class="btn btn-warning btn-lg my-2" @onclick="BuscarOtraPartida">Buscar otra partida</button>
-            }
+                @if (!partidaIniciada && !jugadorDesconectado)
+                {
+                    <button type="button" class="btn btn-success btn-lg col-lg-5 col-md-12" @onclick="IniciarPartida" disabled="@(buscandoPartida)">
+                        @if(partidas == 0)
+                        {
+                            <span>Listo</span>
+                        }
+                        else
+                        {
+                            <span>Revancha</span>
+                        }
+                    </button>
+                }
+
+                @if (jugadorDesconectado || partidaTerminada)
+                {
+                    <button type="button" class="btn btn-warning btn-lg col-lg-5 col-md-12 mt-lg-0 mt-3" @onclick="BuscarOtraPartida">Buscar otro oponente</button>
+                }
+            </div>
 
         <div class="d-flex flex-column my-1">
             <h3>Parejas encontradas: @parejasEncontradas</h3>
@@ -85,6 +97,7 @@
     private HubConnection hubConnection;
     int parejasEncontradas = 0;
     int puntos = 0;
+    int partidas = 0;
 
     List<string> shuffledAnimals = new List<string>();
     List<string> animalEmoji = new List<string>()
@@ -193,6 +206,7 @@
 
     public async ValueTask DisposeAsync()
     {
+        timer.Dispose();
         await hubConnection.DisposeAsync();
     }
 
@@ -253,6 +267,7 @@
         timer.Stop();
         partidaTerminada = true;
         partidaIniciada = false;
+        partidas++;
     }
 
     private void Timer_Tick(object source, ElapsedEventArgs e)
