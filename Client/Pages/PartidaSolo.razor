@@ -11,7 +11,7 @@
             <div class="col-sm-6 mb-3 mb-sm-0">
                 <div class="input-group">
                     <label class="input-group-text">Modo</label>
-                    <select class="form-select" disabled="@(partidaIniciada)">
+                    <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada)">
                         <option value="0" selected>Normal</option>
                         <option value="1">Contrarreloj</option>
                         <option value="2">Una vida</option>
@@ -42,8 +42,8 @@
         <div class="row">
 
             <div class="col-12 col-md-8">
-                <div class="container d-flex justify-content-center">
-                    <div class="row col-xl-9 col-lg-12">
+                <div class="container d-flex justify-content-center @containerPaddingValue">
+                    <div class="row @colValue">
                         @for (int j = 0; j < 2; j++)
                         {
                             <div class="col-6 p-0">
@@ -51,7 +51,7 @@
                                 {
                                     int index = (j * (animalEmoji.Count / 2)) + i;
                                     string animal = shuffledAnimals[index];
-                                    <button type="button" class="btn btn-outline-dark col-@colCssValue p-1" disabled="@(!partidaIniciada)"
+                                    <button type="button" class="btn btn-light border border-dark col-@colCssValue p-1" disabled="@(!partidaIniciada)"
                                             @onclick="@(() => SeleccionarCasilla(animal, index))">
                                         <p class="fs-1 my-1 p-0">@animal</p>
                                     </button>
@@ -74,10 +74,12 @@
                     }
                 </div>
 
-                <div class="d-flex flex-column">
-                    <h3>Parejas encontradas: @parejasEncontradas</h3>
-                    <h3>Puntos: @puntos</h3>
-                    <h3>Tiempo: @tiempo</h3>
+                <div class="d-flex flex-column bg-light bg-gradient rounded-3 border border-2 border-dark">
+                    <h3 class="m-0 px-2 pt-2">Parejas encontradas: @parejasEncontradas</h3>
+                    <hr class="dropdown-divider">
+                    <h3 class="m-0 px-2">Puntos: @puntos</h3>
+                    <hr class="dropdown-divider">
+                    <h3 class="m-0 px-2 pb-2">Tiempo: @tiempo</h3>
                 </div>
             </div>
 
@@ -87,73 +89,6 @@
 
 </div>
 
-@*<div class="row d-flex justify-content-center">
-
-    <div class="@classValue">
-
-        <div class="row">
-
-            <div class="col-12 col-sm-10 col-md-7 col-lg-6 col-xl-4 input-group">
-                <label class="input-group-text">Modo</label>
-                <select class="form-select">
-                    <option value="0" selected>Normal</option>
-                    <option value="1">Contrarreloj</option>
-                    <option value="2">Una vida</option>
-                    <option value="3">Memoria</option>
-                    <option value="4">Cambiante</option>
-                </select>
-            </div>
-
-            <div class="col-12 col-sm-10 col-md-7 col-lg-6 col-xl-4 input-group">
-                <label class="input-group-text">Dificultad</label>
-                <select class="form-select">
-                    <option value="0" selected>4 x 4</option>
-                    <option value="1">4 x 5</option>
-                    <option value="2">4 x 6</option>
-                    <option value="3">4 x 7</option>
-                    <option value="4">4 x 8</option>
-                    <option value="5">6 x 6</option>
-                    <option value="6">6 x 7</option>
-                    <option value="7">6 x 8</option>
-                    <option value="8">8 x 8</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="container">
-
-            <div class="row">
-                @for (int j = 0; j < 2; j++)
-                {
-                    <div class="col-6 p-0">
-                        @for (int i = 0; i < shuffledAnimals.Count / 2; i++)
-                        {
-                            int index = (j * (animalEmoji.Count / 2)) + i;
-                            string animal = shuffledAnimals[index];
-                            <button type="button" class="btn btn-outline-dark col-@colCssValue p-1" disabled="@(!partidaIniciada)"
-                                    @onclick="@(() => SeleccionarCasilla(animal, index))">
-                                <p class="fs-1 my-1 p-0">@animal</p>
-                            </button>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
-
-        @if (!partidaIniciada)
-        {
-            <button type="button" class="btn btn-success btn-lg col-lg-6 col-md-12 my-3" @onclick="IniciarPartida">Listo</button>
-        }
-
-        <div class="d-flex flex-column my-1">
-            <h3>Parejas encontradas: @parejasEncontradas</h3>
-            <h3>Puntos: @puntos</h3>
-            <h3>Tiempo: @tiempo</h3>
-        </div>
-
-    </div>
-</div>*@
-
 @code
 {
     const string CaracterVacio = "\u200D";
@@ -162,11 +97,12 @@
     int cols = 4;
 
     bool partidaIniciada;
-    bool partidaTerminada;
+    int modo;
+    int dificultad;
 
     Timer timer;
-    int tenthsOfSecondsElapsed = 0;
-    string tiempo;
+    int decimasDeSegundos = 0;
+    string tiempo = "0.0s";
 
     string lastAnimalFound = CaracterVacio;
     int lastAnimalIndex = -1;
@@ -175,7 +111,8 @@
     int puntos = 0;
 
     int colCssValue = 6;
-    string classValue = "col-12 col-sm-10 col-md-7 col-lg-6 col-xl-4";
+    string colValue = "col-xl-9 col-lg-12";
+    string containerPaddingValue = "px-4";
 
     List<string> shuffledAnimals = new List<string>();
     List<string> animalEmoji = new List<string>();
@@ -197,7 +134,6 @@
 
     void IniciarPartida()
     {
-        partidaTerminada = false;
         partidaIniciada = true;
 
         SetupGame();
@@ -206,7 +142,11 @@
 
     void SetupGame()
     {
-        tenthsOfSecondsElapsed = 0;
+        if(modo != 1)
+            decimasDeSegundos = 0;
+        else
+            decimasDeSegundos = ObtenerTiempo();
+
         parejasEncontradas = 0;
         puntos = 0;
         lastAnimalFound = CaracterVacio;
@@ -215,99 +155,110 @@
 
     void ReiniciarPartida()
     {
-        FinishGame();
+        TerminarPartida();
         GenerarTablero();
+    }
+
+    void CambiarModo(ChangeEventArgs valor)
+    {
+        int modoValor = Convert.ToInt32(valor.Value.ToString());
+        modo = modoValor;
+
+        SetearTiempo();
+    }
+
+    void SetearTiempo()
+    {
+        if (modo == 1)
+        {
+            decimasDeSegundos = ObtenerTiempo();
+            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
+        }
     }
 
     void CambiarDimensiones(ChangeEventArgs valor)
     {
         int dimensionValor = Convert.ToInt32(valor.Value.ToString());
+        dificultad = dimensionValor;
 
-        switch(dimensionValor)
+        switch(dificultad)
         {
             case 0: // 4x4
                 filas = 4;
                 cols = 4;
                 colCssValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
                 break;
 
             case 1: // 4x5
                 filas = 5;
                 cols = 4;
                 colCssValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
                 break;
 
             case 2: // 4x6
                 filas = 4;
                 cols = 6;
                 colCssValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
                 break;
 
             case 3: // 4x7
                 filas = 7;
                 cols = 4;
                 colCssValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
                 break;
 
             case 4: // 4x8
                 filas = 4;
                 cols = 8;
                 colCssValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-4";
                 break;
 
             case 5: // 6x6
                 filas = 6;
                 cols = 6;
                 colCssValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
                 break;
 
             case 6: // 6x7
                 filas = 7;
                 cols = 6;
                 colCssValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
                 break;
 
             case 7: // 6x8
                 filas = 6;
                 cols = 8;
                 colCssValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-2";
                 break;
 
             case 8: // 8x8
                 filas = 8;
                 cols = 8;
                 colCssValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-2";
                 break;
         }
 
         GenerarTablero();
+        SetearTiempo();
     }
-
-    //void SeleccionarDimension()
-    //{
-    //    animalEmoji = Emojis.ObtenerListaAnimales(filas, cols);
-
-    //    for (int i = 0; i < animalEmoji.Count; i++)
-    //        shuffledAnimals.Add(CaracterVacio);
-
-    //    switch (animalEmoji.Count)
-    //    {
-    //        case 16: case 20: case 28:
-    //            colCssValue = 6;
-    //            classValue = "col-12 col-sm-10 col-md-7 col-lg-6 col-xl-4";
-    //            break;
-
-    //        case 24: case 36: case 42:
-    //            colCssValue = 4;
-    //            classValue = "col-12 col-sm-12 col-md-10 col-lg-7 col-xl-6";
-    //            break;
-
-    //        case 32: case 48: case 64:
-    //            colCssValue = 3;
-    //            classValue = "col-12 col-lg-10 col-xl-7";
-    //            break;
-    //    }
-    //}
 
     void SeleccionarCasilla(string animal, int index)
     {
@@ -329,7 +280,7 @@
 
             if (parejasEncontradas >= animalEmoji.Count / 2)
             {
-                FinishGame();
+                TerminarPartida();
                 GenerarTablero();
             }
         }
@@ -337,12 +288,17 @@
         {
             lastAnimalFound = CaracterVacio;
             lastAnimalIndex = -1;
+            if (modo == 2)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
         }
     }
 
     int CalcularPuntos()
     {
-        int puntos = 200 - tenthsOfSecondsElapsed;
+        int puntos = 200 - decimasDeSegundos;
 
         if (puntos <= 10)
             return 10;
@@ -350,20 +306,61 @@
         return puntos;
     }
 
-    void FinishGame()
+    void TerminarPartida()
     {
         timer.Stop();
-        partidaTerminada = true;
         partidaIniciada = false;
+    }
+
+    int ObtenerTiempo()
+    {
+        return (dificultad + 1) * 100;
     }
 
     private void Timer_Tick(object source, ElapsedEventArgs e)
     {
         InvokeAsync(() =>
         {
-            tenthsOfSecondsElapsed++;
-            tiempo = (tenthsOfSecondsElapsed / 10F).ToString("0.0s");
+            if(modo != 1)
+                decimasDeSegundos++;
+            else
+            {
+                decimasDeSegundos--;
+                if(decimasDeSegundos <= 0)
+                    TerminarPartida();
+            }
+
+            if(modo == 4)
+            {
+                if(decimasDeSegundos % 3 == 0)
+                {
+                    CambiarPosicionCartas();
+                }
+            }
+
+            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
             StateHasChanged();
         });
+    }
+
+    void CambiarPosicionCartas()
+    {
+        Random ran = new Random();
+
+        shuffledAnimals.Where(x => !x.Equals(CaracterVacio));
+
+        int index1, index2;
+
+        do
+        {
+            index1 = ran.Next(shuffledAnimals.Count);
+            index2 = ran.Next(shuffledAnimals.Count);
+        } 
+        while (shuffledAnimals[index1] == CaracterVacio || 
+               shuffledAnimals[index2] == CaracterVacio);
+
+        string emojiAux = shuffledAnimals[index1];
+        shuffledAnimals[index1] = shuffledAnimals[index2];
+        shuffledAnimals[index2] = emojiAux;
     }
 }
