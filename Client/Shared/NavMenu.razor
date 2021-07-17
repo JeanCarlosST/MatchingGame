@@ -1,29 +1,43 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">MatchingGame</a>
-    <button class="navbar-toggler" @onclick="ToggleNavMenu">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-</div>
-
-<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-globe" aria-hidden="true"></span> Jugar online
-            </NavLink>
-            <NavLink class="nav-link" href="/solo">
-                <span class="oi oi-home"></span> Jugar solo
-            </NavLink>
-        </li>
-    </ul>
-</div>
+﻿<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white box-shadow" style="background: linear-gradient(to right, #00ffff 0%, #66ffff 100%); ">
+    <div class="container m-0 " >
+        <a class="navbar-brand" asp-area="" asp-page="/Index" href="">Fantastic Matchers</a>
+        <button class="navbar-toggler" @onclick="ToggleNavMenu" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="@NavMenuCssClass navbar-collapse d-sm-inline-flex flex-sm-row-reverse" @onclick="ToggleNavMenu">
+            <ul class="navbar-nav flex-grow-1  ">
+                <li class="nav-item p-0">
+                    <NavLink class="nav-link" href="/solo">
+                        <span class="oi oi-home"></span> Jugar solo
+                    </NavLink>
+                </li>
+                <li class="nav-item p-0">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="oi oi-globe" aria-hidden="true"></span> Jugar online
+                    </NavLink>
+                </li>
+                <li class="nav-item p-0">
+                    <NavLink class="nav-link" href="/rankings">
+                        <span class="oi oi-home"></span> Rankings
+                    </NavLink>
+                </li>
+                <li class="nav-item p-0">
+                    <NavLink class="nav-link" href="/nosotros">
+                        <span class="oi oi-home"></span> Nosotros
+                    </NavLink>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
 
 @code {
-    private bool collapseNavMenu = true;
+    bool collapseNavMenu = true;
 
-    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
 
-    private void ToggleNavMenu()
+    void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
     }
