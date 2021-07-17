@@ -1,0 +1,49 @@
+﻿@page "/rankings"
+
+<div class="container-fluid">
+    <div class="card shadow-lg">
+        <div class="card-header">
+            <h3>Rankings</h3>
+        </div>
+        <div class="container row">
+            <div class="col">
+                <label>Modo: </label>
+                <select>
+                    <option>
+                        Normal
+                    </option>
+                    <option>Cambiante</option>
+                    <option>Memoria</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Dificultad: </label>
+                <select>
+                    <option>4 x 4</option>
+                    <option>4 x 6</option>
+                    <option>6 x 6</option>
+                    <option>8 x 8</option>
+                </select>
+            </div>
+        </div>
+        
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Usuario</th>
+                    <th>Mejor Tiempo</th>
+                    <th>Puntos</th>
+                    <th>Victorias 1vs1</th>
+                    <th>Victorias Torneos</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody style="background-color: white;" />
+        </table>
+    </div>
+</div>
+
+@code {
+
+}
