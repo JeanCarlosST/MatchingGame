@@ -12,11 +12,11 @@
                 <div class="input-group">
                     <label class="input-group-text">Modo</label>
                     <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada)">
-                        <option value="0" selected>Normal</option>
-                        <option value="1">Contrarreloj</option>
-                        <option value="2">Una vida</option>
-                        <option value="3">Memoria</option>
-                        <option value="4">Cambiante</option>
+                        <option value="@Modo.Normal" selected>Normal</option>
+                        <option value="@Modo.Contrarreloj">Contrarreloj</option>
+                        <option value="@Modo.UnaVida">Una vida</option>
+                        <option value="@Modo.Memoria" disabled>Memoria</option>
+                        <option value="@Modo.Cambiante">Cambiante</option>
                     </select>
                 </div>
             </div>
@@ -24,16 +24,16 @@
             <div class="col-sm-6">
                 <div class="input-group">
                     <label class="input-group-text">Dificultad</label>
-                    <select class="form-select" @onchange="CambiarDimensiones" disabled="@(partidaIniciada)">
-                        <option value="0" selected>4 x 4</option>
-                        <option value="1">4 x 5</option>
-                        <option value="2">4 x 6</option>
-                        <option value="3">4 x 7</option>
-                        <option value="4">4 x 8</option>
-                        <option value="5">6 x 6</option>
-                        <option value="6">6 x 7</option>
-                        <option value="7">6 x 8</option>
-                        <option value="8">8 x 8</option>
+                    <select class="form-select" @onchange="CambiarDificultad" disabled="@(partidaIniciada)">
+                        <option value="@Dificultad._4x4" selected>4 x 4</option>
+                        <option value="@Dificultad._4x5">4 x 5</option>
+                        <option value="@Dificultad._4x6">4 x 6</option>
+                        <option value="@Dificultad._4x7">4 x 7</option>
+                        <option value="@Dificultad._4x8">4 x 8</option>
+                        <option value="@Dificultad._6x6">6 x 6</option>
+                        <option value="@Dificultad._6x7">6 x 7</option>
+                        <option value="@Dificultad._8x8">6 x 8</option>
+                        <option value="@Dificultad._8x8">8 x 8</option>
                     </select>
                 </div>
             </div>
@@ -47,11 +47,16 @@
                         @for (int j = 0; j < 2; j++)
                         {
                             <div class="col-6 p-0">
-                                @for (int i = 0; i < shuffledAnimals.Count / 2; i++)
+                                @for (int i = 0; i < emojisMezclados.Count / 2; i++)
                                 {
-                                    int index = (j * (animalEmoji.Count / 2)) + i;
-                                    string animal = shuffledAnimals[index];
-                                    <button type="button" class="btn btn-light border border-dark col-@colCssValue p-1" disabled="@(!partidaIniciada)"
+                                    int index = (j * (listaEmojis.Count / 2)) + i;
+                                    string animal = emojisMezclados[index];
+                                    string btnClass = "btn-light border border-dark";
+
+                                    @if (index == ultimoAnimalIndice)
+                                        btnClass = "btn-dark";
+
+                                    <button type="button" class="btn @btnClass col-@btnColValue p-1" disabled="@(!partidaIniciada)"
                                             @onclick="@(() => SeleccionarCasilla(animal, index))">
                                         <p class="fs-1 my-1 p-0">@animal</p>
                                     </button>
@@ -92,35 +97,37 @@
 @code
 {
     const string CaracterVacio = "\u200D";
+    enum Modo { Normal, Contrarreloj, UnaVida, Memoria, Cambiante }
+    enum Dificultad { _4x4, _4x5, _4x6, _4x7, _4x8, _6x6, _6x7, _6x8, _8x8 }
 
     int filas = 4;
     int cols = 4;
 
     bool partidaIniciada;
-    int modo;
-    int dificultad;
+    Modo modo = Modo.Normal;
+    Dificultad dificultad = Dificultad._4x4;
 
-    Timer timer;
+    Timer temporizador;
     int decimasDeSegundos = 0;
     string tiempo = "0.0s";
 
-    string lastAnimalFound = CaracterVacio;
-    int lastAnimalIndex = -1;
+    string ultimoEmojiEncontrado = CaracterVacio;
+    int ultimoAnimalIndice = -1;
 
     int parejasEncontradas = 0;
     int puntos = 0;
 
-    int colCssValue = 6;
+    int btnColValue = 6;
     string colValue = "col-xl-9 col-lg-12";
     string containerPaddingValue = "px-4";
 
-    List<string> shuffledAnimals = new List<string>();
-    List<string> animalEmoji = new List<string>();
+    List<string> emojisMezclados = new List<string>();
+    List<string> listaEmojis = new List<string>();
 
     protected override void OnInitialized()
     {
-        timer = new Timer(100);
-        timer.Elapsed += Timer_Tick;
+        temporizador = new Timer(100);
+        temporizador.Elapsed += Timer_Tick;
 
         GenerarTablero();
     }
@@ -128,8 +135,8 @@
     void GenerarTablero()
     {
         Random ran = new Random();
-        animalEmoji = Emojis.ObtenerListaAnimales(filas, cols);
-        shuffledAnimals = animalEmoji.OrderBy(item => ran.Next()).ToList();
+        listaEmojis = Emojis.ObtenerListaAnimales(filas, cols);
+        emojisMezclados = listaEmojis.OrderBy(item => ran.Next()).ToList();
     }
 
     void IniciarPartida()
@@ -137,20 +144,20 @@
         partidaIniciada = true;
 
         SetupGame();
-        timer.Start();
+        temporizador.Start();
     }
 
     void SetupGame()
     {
-        if(modo != 1)
-            decimasDeSegundos = 0;
-        else
+        if(modo == Modo.Contrarreloj)
             decimasDeSegundos = ObtenerTiempo();
+        else
+            decimasDeSegundos = 0;
 
         parejasEncontradas = 0;
         puntos = 0;
-        lastAnimalFound = CaracterVacio;
-        lastAnimalIndex = -1;
+        ultimoEmojiEncontrado = CaracterVacio;
+        ultimoAnimalIndice = -1;
     }
 
     void ReiniciarPartida()
@@ -161,96 +168,93 @@
 
     void CambiarModo(ChangeEventArgs valor)
     {
-        int modoValor = Convert.ToInt32(valor.Value.ToString());
-        modo = modoValor;
-
+        modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
         SetearTiempo();
     }
 
     void SetearTiempo()
     {
-        if (modo == 1)
+        if (modo == Modo.Contrarreloj)
         {
             decimasDeSegundos = ObtenerTiempo();
             tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
         }
     }
 
-    void CambiarDimensiones(ChangeEventArgs valor)
+    void CambiarDificultad(ChangeEventArgs valor)
     {
-        int dimensionValor = Convert.ToInt32(valor.Value.ToString());
-        dificultad = dimensionValor;
+        dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), valor.Value.ToString());
 
         switch(dificultad)
         {
-            case 0: // 4x4
+            case Dificultad._4x4:
                 filas = 4;
                 cols = 4;
-                colCssValue = 6;
+                btnColValue = 6;
                 colValue = "col-xl-9 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
-            case 1: // 4x5
+            case Dificultad._4x5:
                 filas = 5;
                 cols = 4;
-                colCssValue = 6;
+                btnColValue = 6;
                 colValue = "col-xl-9 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
-            case 2: // 4x6
+            case Dificultad._4x6:
                 filas = 4;
                 cols = 6;
-                colCssValue = 4;
+                btnColValue = 4;
                 colValue = "col-xl-10 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
-            case 3: // 4x7
+            case Dificultad._4x7:
                 filas = 7;
                 cols = 4;
-                colCssValue = 6;
+                btnColValue = 6;
                 colValue = "col-xl-9 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
-            case 4: // 4x8
+            case Dificultad._4x8:
                 filas = 4;
                 cols = 8;
-                colCssValue = 3;
+                btnColValue = 3;
                 colValue = "col-12";
                 containerPaddingValue = "px-4";
                 break;
 
-            case 5: // 6x6
+            case Dificultad._6x6:
                 filas = 6;
                 cols = 6;
-                colCssValue = 4;
+                btnColValue = 4;
                 colValue = "col-xl-10 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
-            case 6: // 6x7
+            case Dificultad._6x7:
                 filas = 7;
                 cols = 6;
-                colCssValue = 4;
+                btnColValue = 4;
                 colValue = "col-xl-10 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
-            case 7: // 6x8
+            case Dificultad._6x8:
                 filas = 6;
                 cols = 8;
-                colCssValue = 3;
+                btnColValue = 3;
                 colValue = "col-12";
                 containerPaddingValue = "px-2";
                 break;
 
-            case 8: // 8x8
+            case Dificultad._8x8:
                 filas = 8;
                 cols = 8;
-                colCssValue = 3;
+                btnColValue = 3;
                 colValue = "col-12";
                 containerPaddingValue = "px-2";
                 break;
@@ -262,23 +266,23 @@
 
     void SeleccionarCasilla(string animal, int index)
     {
-        if (lastAnimalFound == CaracterVacio)
+        if (ultimoEmojiEncontrado == CaracterVacio)
         {
-            lastAnimalFound = animal;
-            lastAnimalIndex = index;
+            ultimoEmojiEncontrado = animal;
+            ultimoAnimalIndice = index;
         }
-        else if (lastAnimalFound == animal && lastAnimalIndex != index)
+        else if (ultimoEmojiEncontrado == animal && ultimoAnimalIndice != index)
         {
-            lastAnimalFound = CaracterVacio;
-            lastAnimalIndex = -1;
-            shuffledAnimals = shuffledAnimals
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            emojisMezclados = emojisMezclados
                 .Select(a => a.Replace(animal, CaracterVacio))
                 .ToList();
 
             puntos += CalcularPuntos();
             parejasEncontradas++;
 
-            if (parejasEncontradas >= animalEmoji.Count / 2)
+            if (parejasEncontradas >= listaEmojis.Count / 2)
             {
                 TerminarPartida();
                 GenerarTablero();
@@ -286,9 +290,9 @@
         }
         else
         {
-            lastAnimalFound = CaracterVacio;
-            lastAnimalIndex = -1;
-            if (modo == 2)
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            if (modo == Modo.UnaVida)
             {
                 TerminarPartida();
                 GenerarTablero();
@@ -308,20 +312,20 @@
 
     void TerminarPartida()
     {
-        timer.Stop();
+        temporizador.Stop();
         partidaIniciada = false;
     }
 
     int ObtenerTiempo()
     {
-        return (dificultad + 1) * 100;
+        return ((int)dificultad + 1) * 100;
     }
 
     private void Timer_Tick(object source, ElapsedEventArgs e)
     {
         InvokeAsync(() =>
         {
-            if(modo != 1)
+            if(modo != Modo.Contrarreloj)
                 decimasDeSegundos++;
             else
             {
@@ -330,9 +334,9 @@
                     TerminarPartida();
             }
 
-            if(modo == 4)
+            if(modo == Modo.Cambiante)
             {
-                if(decimasDeSegundos % 3 == 0)
+                if(decimasDeSegundos % 7 == 0)
                 {
                     CambiarPosicionCartas();
                 }
@@ -345,22 +349,28 @@
 
     void CambiarPosicionCartas()
     {
-        Random ran = new Random();
-
-        shuffledAnimals.Where(x => !x.Equals(CaracterVacio));
-
-        int index1, index2;
-
-        do
+        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 2)
         {
-            index1 = ran.Next(shuffledAnimals.Count);
-            index2 = ran.Next(shuffledAnimals.Count);
-        } 
-        while (shuffledAnimals[index1] == CaracterVacio || 
-               shuffledAnimals[index2] == CaracterVacio);
+            Random ran = new Random();
+            int indice1, indice2;
 
-        string emojiAux = shuffledAnimals[index1];
-        shuffledAnimals[index1] = shuffledAnimals[index2];
-        shuffledAnimals[index2] = emojiAux;
+            do
+            {
+                indice1 = ran.Next(emojisMezclados.Count);
+                indice2 = ran.Next(emojisMezclados.Count);
+            }
+            while (emojisMezclados[indice1] == CaracterVacio ||
+                   emojisMezclados[indice2] == CaracterVacio);
+
+            if (indice1 == ultimoAnimalIndice || indice2 == ultimoAnimalIndice)
+            {
+                ultimoEmojiEncontrado = CaracterVacio;
+                ultimoAnimalIndice = -1;
+            }
+
+            string emojiAux = emojisMezclados[indice1];
+            emojisMezclados[indice1] = emojisMezclados[indice2];
+            emojisMezclados[indice2] = emojiAux;
+        }
     }
 }
