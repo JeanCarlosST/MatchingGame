@@ -1,0 +1,126 @@
+﻿@page "/online"
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+@if (EstaConectado)
+{
+    <div class="container">
+
+        <div class="row d-flex justify-content-center">
+            <div class="card col-lg-6 mt-md-5 p-3">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Nombre de usuario:</label>
+                        <input @bind="Nombre" />
+                    </div>
+
+                    @*<div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" @bind="mostrarDimensiones" />
+                        <label class="form-check-label">Cambiar dimensiones</label>
+                        <input class="input-group" @bind="dimensiones" disabled />
+                    </div>
+
+                    @if(mostrarDimensiones)
+                    {
+                        <div class="btn-toolbar d-flex flex-column mb-2">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("4x4"))">4x4</button>
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("4x5"))">4x5</button>
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("4x6"))">4x6</button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("4x7"))">4x7</button>
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("4x8"))">4x8</button>
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("6x6"))">6x6</button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("6x7"))">6x7</button>
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("6x8"))">6x8</button>
+                                <button type="button" class="btn btn-primary m-1" @onclick="@(() => CambiarDimensiones("8x8"))">8x8</button>
+                            </div>
+                        </div>
+                    }*@
+
+                    <div class="form-group d-flex flex-column m-0 mt-3">
+                        <button type="button" class="btn btn-success btn-lg"
+                                @onclick="BuscarPartida" disabled="@(buscandoPartida)">
+                            @if (buscandoPartida)
+                            {
+                                <span>Buscando partida...</span>
+                                <span class="spinner-border spinner-border-sm mb-1"></span>
+                            }
+                            else
+                            {
+                                <span>Buscar partida</span>
+                            }
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+else
+{
+    <div class="alert alert-danger d-flex justify-content-center" role="alert">
+        <div>
+            <span class="oi oi-warning mr-2"/><b>No estás conectado</b>
+        </div>
+    </div>
+    
+}
+
+@code {
+    private HubConnection hubConnection;
+    private string Nombre;
+    private bool buscandoPartida = false;
+    private int filas = 4;
+    private int columnas = 4;
+    private bool mostrarDimensiones = false;
+    private string dimensiones = "4x4";
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/peticion_hub"))
+            .Build();
+
+        hubConnection.On<int>("RecibirPartida", (partidaId) =>
+        {
+            NavigationManager.NavigateTo($"/partida/{partidaId}/{Nombre}");
+            StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+        StateHasChanged();
+    }
+
+    async Task BuscarPartida()
+    {
+        if (String.IsNullOrEmpty(Nombre))
+            return;
+
+        buscandoPartida = true;
+
+        await hubConnection.SendAsync("RecibirPeticion", Nombre, "partidaNormal");
+    }
+
+    void CambiarDimensiones(string dimensiones)
+    {
+        Console.WriteLine(dimensiones);
+        this.dimensiones = dimensiones;
+    }
+
+    public bool EstaConectado =>
+        hubConnection.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        await hubConnection.DisposeAsync();
+    }
+}
