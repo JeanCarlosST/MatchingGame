@@ -12,6 +12,10 @@ namespace MatchingGame.Shared
         public string JugadorUnoNombre { get; set; }
         public string JugadorDosId { get; set; }
         public string JugadorDosNombre { get; set; }
+        //public string JugadorUnoId { get; set; }
+        //public Jugador JugadorUno { get; set; }
+        //public string JugadorDosId { get; set; }
+        //public Jugador JugadorDos { get; set; }
         private int animalesJugadorUno { get; set; } = -1;
         private int animalesJugadorDos { get; set; } = -1;
         public bool Iniciada = false;
