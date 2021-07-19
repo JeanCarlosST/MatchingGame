@@ -1,0 +1,371 @@
+﻿@page "/solo"
+@using System.Timers;
+
+<div class="row d-flex justify-content-center">
+    <div class="col-xl-8 col-lg-10 col-12">
+        <div class="row mb-3 mb-sm-4">
+            <div class="col-sm-6 mb-3 mb-sm-0">
+                <div class="input-group">
+                    <label class="input-group-text">Modo</label>
+                    <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada)">
+                        <option value="@Modo.Normal" selected>Normal</option>
+                        <option value="@Modo.Contrarreloj">Contrarreloj</option>
+                        <option value="@Modo.UnaVida">Una vida</option>
+                        <option value="@Modo.Memoria (Proximamente)" disabled>Memoria</option>
+                        <option value="@Modo.Cambiante">Cambiante</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="input-group">
+                    <label class="input-group-text">Dificultad</label>
+                    <select class="form-select" @onchange="CambiarDificultad" disabled="@(partidaIniciada)">
+                        <option value="@Dificultad._4x4" selected>4 x 4</option>
+                        <option value="@Dificultad._4x5">4 x 5</option>
+                        <option value="@Dificultad._4x6">4 x 6</option>
+                        <option value="@Dificultad._4x7">4 x 7</option>
+                        <option value="@Dificultad._4x8">4 x 8</option>
+                        <option value="@Dificultad._6x6">6 x 6</option>
+                        <option value="@Dificultad._6x7">6 x 7</option>
+                        <option value="@Dificultad._8x8">6 x 8</option>
+                        <option value="@Dificultad._8x8">8 x 8</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12 col-md-8">
+                <div class="container d-flex justify-content-center @containerPaddingValue">
+                    <div class="row @colValue">
+                        @for (int j = 0; j < 2; j++)
+                        {
+                            <div class="col-6 p-0">
+                                @for (int i = 0; i < emojisMezclados.Count / 2; i++)
+                                {
+                                    int index = (j * (listaEmojis.Count / 2)) + i;
+                                    string animal = emojisMezclados[index];
+                                    string btnClass = "btn-light border border-dark";
+
+                                    @if (index == ultimoAnimalIndice)
+                                        btnClass = "btn-dark";
+
+                                    <button type="button" class="btn @btnClass col-@btnColValue p-1" disabled="@(!partidaIniciada)"
+                                            @onclick="@(() => SeleccionarCasilla(animal, index))">
+                                        <p class="fs-1 my-1 p-0">@animal</p>
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4 mt-3 mt-md-0">
+                <div class="d-flex flex-column mb-3">
+                    @if (!partidaIniciada)
+                    {
+                        <button type="button" class="btn btn-success btn-lg" @onclick="IniciarPartida">Listo</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-warning btn-lg" @onclick="ReiniciarPartida">Reintentar</button>
+                    }
+                </div>
+
+                <div class="d-flex flex-column bg-light bg-gradient rounded-3 border border-2 border-dark">
+                    <h3 class="m-0 px-2 pt-2">Parejas encontradas: @parejasEncontradas</h3>
+                    <hr class="dropdown-divider">
+                    <h3 class="m-0 px-2">Puntos: @puntos</h3>
+                    <hr class="dropdown-divider">
+                    <h3 class="m-0 px-2 pb-2">Tiempo: @tiempo</h3>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@code
+{
+    const string CaracterVacio = "\u200D";
+    enum Modo { Normal, Contrarreloj, UnaVida, Memoria, Cambiante }
+    enum Dificultad { _4x4, _4x5, _4x6, _4x7, _4x8, _6x6, _6x7, _6x8, _8x8 }
+
+    int filas = 4;
+    int cols = 4;
+
+    bool partidaIniciada;
+    Modo modo = Modo.Normal;
+    Dificultad dificultad = Dificultad._4x4;
+
+    Timer temporizador;
+    int decimasDeSegundos = 0;
+    string tiempo = "0.0s";
+
+    string ultimoEmojiEncontrado = CaracterVacio;
+    int ultimoAnimalIndice = -1;
+
+    int parejasEncontradas = 0;
+    int puntos = 0;
+
+    int btnColValue = 6;
+    string colValue = "col-xl-9 col-lg-12";
+    string containerPaddingValue = "px-4";
+
+    List<string> emojisMezclados = new List<string>();
+    List<string> listaEmojis = new List<string>();
+
+    protected override void OnInitialized()
+    {
+        temporizador = new Timer(100);
+        temporizador.Elapsed += Timer_Tick;
+
+        GenerarTablero();
+    }
+
+    void GenerarTablero()
+    {
+        Random ran = new Random();
+        listaEmojis = Emojis.ObtenerListaAnimales(filas, cols);
+        emojisMezclados = listaEmojis.OrderBy(item => ran.Next()).ToList();
+    }
+
+    void IniciarPartida()
+    {
+        partidaIniciada = true;
+
+        SetupGame();
+        temporizador.Start();
+    }
+
+    void SetupGame()
+    {
+        if (modo == Modo.Contrarreloj)
+            decimasDeSegundos = ObtenerTiempo();
+        else
+            decimasDeSegundos = 0;
+
+        parejasEncontradas = 0;
+        puntos = 0;
+        ultimoEmojiEncontrado = CaracterVacio;
+        ultimoAnimalIndice = -1;
+    }
+
+    void ReiniciarPartida()
+    {
+        TerminarPartida();
+        GenerarTablero();
+    }
+
+    void CambiarModo(ChangeEventArgs valor)
+    {
+        modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
+        SetearTiempo();
+    }
+
+    void SetearTiempo()
+    {
+        if (modo == Modo.Contrarreloj)
+        {
+            decimasDeSegundos = ObtenerTiempo();
+            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
+        }
+    }
+
+    void CambiarDificultad(ChangeEventArgs valor)
+    {
+        dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), valor.Value.ToString());
+
+        switch (dificultad)
+        {
+            case Dificultad._4x4:
+                filas = 4;
+                cols = 4;
+                btnColValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x5:
+                filas = 5;
+                cols = 4;
+                btnColValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x6:
+                filas = 4;
+                cols = 6;
+                btnColValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x7:
+                filas = 7;
+                cols = 4;
+                btnColValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x8:
+                filas = 4;
+                cols = 8;
+                btnColValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._6x6:
+                filas = 6;
+                cols = 6;
+                btnColValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._6x7:
+                filas = 7;
+                cols = 6;
+                btnColValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._6x8:
+                filas = 6;
+                cols = 8;
+                btnColValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-2";
+                break;
+
+            case Dificultad._8x8:
+                filas = 8;
+                cols = 8;
+                btnColValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-2";
+                break;
+        }
+
+        GenerarTablero();
+        SetearTiempo();
+    }
+
+    void SeleccionarCasilla(string animal, int index)
+    {
+        if (ultimoEmojiEncontrado == CaracterVacio)
+        {
+            ultimoEmojiEncontrado = animal;
+            ultimoAnimalIndice = index;
+        }
+        else if (ultimoEmojiEncontrado == animal && ultimoAnimalIndice != index)
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            emojisMezclados = emojisMezclados
+                .Select(a => a.Replace(animal, CaracterVacio))
+                .ToList();
+
+            puntos += CalcularPuntos();
+            parejasEncontradas++;
+
+            if (parejasEncontradas >= listaEmojis.Count / 2)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+        else
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            if (modo == Modo.UnaVida)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+    }
+
+    int CalcularPuntos()
+    {
+        int puntos = 200 - decimasDeSegundos;
+
+        if (puntos <= 10)
+            return 10;
+
+        return puntos;
+    }
+
+    void TerminarPartida()
+    {
+        temporizador.Stop();
+        partidaIniciada = false;
+    }
+
+    int ObtenerTiempo()
+    {
+        return ((int)dificultad + 1) * 100;
+    }
+
+    private void Timer_Tick(object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            if (modo != Modo.Contrarreloj)
+                decimasDeSegundos++;
+            else
+            {
+                decimasDeSegundos--;
+                if (decimasDeSegundos <= 0)
+                    TerminarPartida();
+            }
+
+            if (modo == Modo.Cambiante)
+            {
+                if (decimasDeSegundos % 7 == 0)
+                {
+                    CambiarPosicionCartas();
+                }
+            }
+
+            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
+            StateHasChanged();
+        });
+    }
+
+    void CambiarPosicionCartas()
+    {
+        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 2)
+        {
+            Random ran = new Random();
+            int indice1, indice2;
+
+            do
+            {
+                indice1 = ran.Next(emojisMezclados.Count);
+                indice2 = ran.Next(emojisMezclados.Count);
+            }
+            while (emojisMezclados[indice1] == CaracterVacio ||
+                   emojisMezclados[indice2] == CaracterVacio);
+
+            if (indice1 == ultimoAnimalIndice || indice2 == ultimoAnimalIndice)
+            {
+                ultimoEmojiEncontrado = CaracterVacio;
+                ultimoAnimalIndice = -1;
+            }
+
+            string emojiAux = emojisMezclados[indice1];
+            emojisMezclados[indice1] = emojisMezclados[indice2];
+            emojisMezclados[indice2] = emojiAux;
+        }
+    }
+}

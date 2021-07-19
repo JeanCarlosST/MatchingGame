@@ -1,5 +1,5 @@
 ﻿<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white box-shadow" style="background: linear-gradient(to right, #00ffff 0%, #66ffff 100%); ">
-    <div class="container m-0 ">
+    <div class="container-fluid m-0 ">
         <a class="navbar-brand" asp-area="" asp-page="/Index" href="">Fantastic Matchers</a>
         <button class="navbar-toggler" @onclick="ToggleNavMenu" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -7,12 +7,12 @@
         </button>
         <div class="@NavMenuCssClass navbar-collapse d-sm-inline-flex flex-sm-row-reverse" @onclick="ToggleNavMenu">
             <div class="align-content-lg-end">
+                <a href="/login" class="m-2">Iniciar sesión</a>
                 <a href="/register">Registrarse</a>
-                <a href="/login">Iniciar sesión</a>
             </div>
             <ul class="navbar-nav flex-grow-1  ">
                 <li class="nav-item p-0">
-                    <NavLink class="nav-link" href="">
+                    <NavLink class="nav-link" href="/solo">
                         <span class="oi oi-home"></span> Jugar solo
                     </NavLink>
                 </li>
