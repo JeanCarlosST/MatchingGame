@@ -447,8 +447,11 @@
 
     void CambiarModo(ChangeEventArgs valor)
     {
-        modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
-        SetearTiempo();
+        if(Oponente == null)
+        {
+            modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
+            SetearTiempo();
+        }
     }
 
     void SetearTiempo()
@@ -462,6 +465,9 @@
 
     void CambiarDificultad(ChangeEventArgs valor)
     {
+        if (Oponente != null)
+            return;
+
         dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), valor.Value.ToString());
 
         switch (dificultad)
