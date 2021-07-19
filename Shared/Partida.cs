@@ -8,47 +8,46 @@ namespace MatchingGame.Shared
     public class Partida
     {
         public int PartidaId { get; set; }
-        public string JugadorUnoId { get; set; }
-        public string JugadorUnoNombre { get; set; }
-        public string JugadorDosId { get; set; }
-        public string JugadorDosNombre { get; set; }
-        //public string JugadorUnoId { get; set; }
-        //public Jugador JugadorUno { get; set; }
-        //public string JugadorDosId { get; set; }
-        //public Jugador JugadorDos { get; set; }
-        private int animalesJugadorUno { get; set; } = -1;
-        private int animalesJugadorDos { get; set; } = -1;
+        public Jugador1v1 JugadorUno { get; set; } = new Jugador1v1();
+        public Jugador1v1 JugadorDos { get; set; } = new Jugador1v1();
         public bool Iniciada = false;
         public bool Terminada = false;
 
-        public void SumarAnimalesJugadorUno()
+        public void JugadorUnoParEncontrado()
         {
-            animalesJugadorUno++;
+            JugadorUno.ParesEncontrados++;
+            JugadorUno.terminado = JugadorUno.ParesEncontrados == JugadorUno.ParesTotal;
         }
 
-        public void SumarAnimalesJugadorDos()
+        public void JugadorDosParEncontrado()
         {
-            animalesJugadorDos++;
+            JugadorDos.ParesEncontrados++;
+            JugadorDos.terminado = JugadorDos.ParesEncontrados == JugadorDos.ParesTotal;
         }
 
-        public int GetAnimalesJugadorUno()
+        public int ObtenerJugadorUnoPares()
         {
-            return animalesJugadorUno;
+            return JugadorUno.ParesEncontrados;
         }
 
-        public int GetAnimalesJugadorDos()
+        public int ObtenerJugadorDosPares()
         {
-            return animalesJugadorDos;
+            return JugadorDos.ParesEncontrados;
         }
 
         public void Terminar()
         {
-            Terminada = animalesJugadorUno == 8 || animalesJugadorDos == 8;
+            Terminada = JugadorUno.terminado && JugadorDos.terminado;
             if(Terminada)
             {
                 Iniciada = false;
-                animalesJugadorUno = -1;
-                animalesJugadorDos = -1;
+                JugadorUno.listo = false;
+                JugadorDos.listo = false;
+
+                if (JugadorUno.Puntos > JugadorDos.Puntos)
+                    JugadorUno.Victorias++;
+                else
+                    JugadorDos.Victorias++;
             }
         }
 
