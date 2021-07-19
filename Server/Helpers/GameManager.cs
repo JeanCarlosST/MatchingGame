@@ -13,10 +13,10 @@ namespace MatchingGame.Server.Helpers
 
         public bool AgregarPeticion(Peticion peticion)
         {
-            if (Peticiones.Find(p => p.UsuarioId == peticion.UsuarioId) != null)
+            if (Peticiones.Find(p => p.Jugador.Id == peticion.Jugador.Id) != null)
                 return false;
 
-            Peticion otraPeticion = Peticiones.Find(p => p.Descripcion == peticion.Descripcion && p.UsuarioId != peticion.UsuarioId);
+            Peticion otraPeticion = Peticiones.Find(p => p.Descripcion == peticion.Descripcion && p.Jugador.Id != peticion.Jugador.Id);
 
             if(otraPeticion != null)
             {
@@ -24,10 +24,8 @@ namespace MatchingGame.Server.Helpers
                 Partida partida = new Partida()
                 {
                     PartidaId = Partidas.Count + 1,
-                    JugadorUnoId = otraPeticion.UsuarioId,
-                    JugadorUnoNombre = otraPeticion.Nombre,
-                    JugadorDosId = peticion.UsuarioId,
-                    JugadorDosNombre = peticion.Nombre
+                    JugadorUno = otraPeticion.Jugador,
+                    JugadorDos = peticion.Jugador
                 };
                 Partidas.Add(partida);
             }
@@ -37,32 +35,11 @@ namespace MatchingGame.Server.Helpers
             return true;
         }
 
-        public Partida EstablecerPartida(int id, string jugadorId, string jugadorNombre)
-        {
-            var partida = Partidas.Find(
-                p => p.PartidaId == id
-            );
-
-            if(partida != null)
-            {
-                if (partida.JugadorUnoNombre == jugadorNombre)
-                {
-                    partida.JugadorUnoId = jugadorId;
-                }
-                else if (partida.JugadorDosNombre == jugadorNombre)
-                {
-                    partida.JugadorDosId = jugadorId;
-                }
-            }
-
-            return partida;
-        }
-
         public Partida BuscarPartidaPorJugadorId(string connectionId)
         {
             foreach (var partida in Partidas)
             {
-                if (partida.JugadorUnoId == connectionId || partida.JugadorDosId == connectionId)
+                if (partida.JugadorUno.Id == connectionId || partida.JugadorDos.Id == connectionId)
                 {
                     return partida;
                 }
@@ -75,25 +52,30 @@ namespace MatchingGame.Server.Helpers
             Partidas.Remove(partida);    
         }
 
-        public void EliminarPeticionDeUsuario(string connectionId)
+        public Peticion BuscarPeticionPorJugadorId(string connectionId)
         {
-            foreach(var peticion in Peticiones)
+            foreach (var peticion in Peticiones)
             {
-                if(peticion.UsuarioId == connectionId)
+                if (peticion.Jugador.Id == connectionId)
                 {
-                    Peticiones.Remove(peticion);
-                    break;
+                    return peticion;
                 }
             }
+            return null;
+        }
+
+        public void EliminarPeticion(Peticion peticion)
+        {
+            Peticiones.Remove(peticion);
         }
 
         public Partida EncontrarPartida(Peticion peticion)
         {   
-            return Partidas.Find(p => p.JugadorUnoId == peticion.UsuarioId || 
-                                      p.JugadorDosId == peticion.UsuarioId);
+            return Partidas.Find(p => p.JugadorUno.Id == peticion.Jugador.Id || 
+                                      p.JugadorDos.Id == peticion.Jugador.Id);
         }
 
-        public Partida IniciarPartida(int id, string jugadorId)
+        public Partida MarcarPartidaListo(int id, Jugador1v1 jugador)
         {
             var partida = Partidas.Find(
                 p => p.PartidaId == id
@@ -103,22 +85,24 @@ namespace MatchingGame.Server.Helpers
             {
                 partida.Terminada = false;
 
-                if (partida.JugadorUnoId == jugadorId)
+                if (partida.JugadorUno.Id == jugador.Id && partida.JugadorUno.Nickname == jugador.Nickname)
                 {
-                    partida.SumarAnimalesJugadorUno();
+                    partida.JugadorUno.listo = true;
+                    partida.JugadorUno.terminado = false;
                 }
-                else if (partida.JugadorDosId == jugadorId)
+                else if (partida.JugadorDos.Id == jugador.Id && partida.JugadorDos.Nickname == jugador.Nickname)
                 {
-                    partida.SumarAnimalesJugadorDos();
+                    partida.JugadorDos.listo = true;
+                    partida.JugadorDos.terminado = false;
                 }
 
-                if (partida.GetAnimalesJugadorUno() == 0 && partida.GetAnimalesJugadorDos() == 0)
+                if (partida.JugadorUno.listo && partida.JugadorDos.listo)
                     partida.Iniciada = true;
             }
             return partida;
         }
 
-        public Partida MarcarParejaEncontrada(int id, string jugadorId, string jugadorNombre)
+        public Partida MarcarParejaEncontrada(int id, Jugador1v1 jugador)
         {
             var partida = Partidas.Find(
                 p => p.PartidaId == id
@@ -126,10 +110,16 @@ namespace MatchingGame.Server.Helpers
 
             if(partida != null && !partida.Terminada)
             {
-                if (partida.JugadorUnoId == jugadorId && partida.JugadorUnoNombre == jugadorNombre)
-                    partida.SumarAnimalesJugadorUno();
-                else if (partida.JugadorDosId == jugadorId && partida.JugadorDosNombre == jugadorNombre)
-                    partida.SumarAnimalesJugadorDos();
+                if (partida.JugadorUno.Id == jugador.Id && partida.JugadorUno.Nickname == jugador.Nickname)
+                { 
+                    partida.JugadorUnoParEncontrado();
+                    partida.JugadorUno = jugador;
+                }
+                else if (partida.JugadorDos.Id == jugador.Id && partida.JugadorDos.Nickname == jugador.Nickname)
+                {
+                    partida.JugadorDosParEncontrado();
+                    partida.JugadorDos = jugador;
+                }
             }
 
             return partida;
