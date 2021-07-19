@@ -1,0 +1,669 @@
+﻿@page "/one_vs_one"
+@using MatchingGame.Shared;
+@using System.Timers;
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<div class="row d-flex justify-content-center">
+
+    <div class="col-xl-8 col-lg-10 col-12">
+
+        <div class="row mb-3 mb-sm-4">
+
+            <div class="col-sm-4 mb-3 mb-sm-0">
+                <div class="input-group">
+                    <label class="input-group-text">Modo</label>
+                    <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada || Yo.listo || jugadorDesconectado)">
+                        <option value="@Modo.Normal" selected>Normal</option>
+                        <option value="@Modo.Contrarreloj">Contrarreloj</option>
+                        <option value="@Modo.UnaVida">Una vida</option>
+                        <option value="@Modo.Memoria" disabled>Memoria</option>
+                        <option value="@Modo.Cambiante">Cambiante</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-sm-4 mb-3 mb-sm-0">
+                <div class="input-group">
+                    <label class="input-group-text">Dificultad</label>
+                    <select class="form-select" @onchange="CambiarDificultad" disabled="@(partidaIniciada || Yo.listo || jugadorDesconectado)">
+                        <option value="@Dificultad._4x4" selected>4 x 4</option>
+                        <option value="@Dificultad._4x5">4 x 5</option>
+                        <option value="@Dificultad._4x6">4 x 6</option>
+                        <option value="@Dificultad._4x7">4 x 7</option>
+                        <option value="@Dificultad._4x8">4 x 8</option>
+                        <option value="@Dificultad._6x6">6 x 6</option>
+                        <option value="@Dificultad._6x7">6 x 7</option>
+                        <option value="@Dificultad._8x8">6 x 8</option>
+                        <option value="@Dificultad._8x8">8 x 8</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="input-group d-flex flex-column">
+                    @if (Oponente == null)
+                    {
+                        <button type="button" class="btn btn-info" @onclick="BuscarOponente" disabled="@(buscandoOponente)">
+                            Buscar oponente
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-info" @onclick="SolicitudCambiarPartida" disabled="@(jugadorDesconectado)">
+                            Cambiar modo o dificultad
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-12 col-md-6">
+                <div class="row">
+                    @for (int j = 0; j < 2; j++)
+                    {
+                        <div class="col-6 p-0">
+                            @for (int i = 0; i < emojisMezclados.Count / 2; i++)
+                            {
+                                int index = (j * (listaEmojis.Count / 2)) + i;
+                                string animal = emojisMezclados[index];
+                                string btnClass = "btn-light border border-dark";
+
+                                @if (index == ultimoAnimalIndice)
+                                    btnClass = "btn-dark";
+
+                                <button type="button" class="btn @btnClass col-@btnColValue p-1" disabled="@(!partidaIniciada || jugadorDesconectado)"
+                                        @onclick="@(() => SeleccionarCasilla(animal, index))">
+                                    <p class="fs-1 my-1 p-0">@animal</p>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="row d-flex justify-content-center col-12 col-md-6 mt-3 mt-md-0">
+
+                <div class="col-6">
+                    <div class="card bg-primary">
+
+                        <div class="card-header text-center">
+                            <b>@Yo.Nickname - Tú</b>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center">
+                                <img src="Images/smileyFace.jpg" width="60" class="rounded-3" />
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <label>Pares:</label>
+                                    <label>@Yo.ParesEncontrados/@Yo.ParesTotal</label>
+                                </div>
+                                <div class="col-6">
+                                    <label>Victorias:</label>
+                                    <label>@Yo.Victorias</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col-6">
+                                    <label>Puntos:</label>
+                                    <label>@Yo.Puntos</label>
+                                </div>
+                                <div class="col-6">
+                                    <label>Tiempo:</label>
+                                    <label><b>@Yo.Tiempo</b></label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="card bg-danger">
+
+                        @if (Oponente != null)
+                        {
+                            <div class="card-header text-center">
+                                <b>@Oponente.Nickname - Oponente</b>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="d-flex justify-content-center">
+                                    @if(!jugadorDesconectado)
+                                    {
+                                        <img src="Images/smileyFace.jpg" width="60" class="rounded-3" />
+                                    }
+                                    else
+                                    {
+                                        <span class="text-center"><b>JUGADOR DESCONECTADO</b></span>
+                                    }
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <label>Pares:</label>
+                                        <label>@Oponente.ParesEncontrados/@Oponente.ParesTotal</label>
+                                    </div>
+                                    <div class="col-6">
+                                        <label>Victorias:</label>
+                                        <label>@Oponente.Victorias</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer">
+                                <div class="row">
+                                    @if(mostrarResultadosOponente)
+                                    {
+                                        <div class="col-6">
+                                            <label>Puntos:</label>
+                                            <label>@Oponente.Puntos</label>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Tiempo:</label>
+                                            <label>@Oponente.Tiempo</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        else if(buscandoOponente)
+                        {
+                            <div class="card-header text-center">
+                                <b>...</b>
+                            </div>
+
+                            <div class="card-body text-center">
+                                <div class="col-12">
+                                    <span><b>Buscando oponente</b></span>
+                                </div>
+                                <div class="col-12 text-center my-3">
+                                    <span class="spinner-border"></span>
+                                </div>
+                            </div>
+
+                            <div class="card-footer">
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-12 row my-3">
+                    @if (Oponente != null)
+                    {
+                        @if (!partidaIniciada)
+                        {
+                        <div class="col-6">
+                            <div class="input-group d-flex flex-column">
+                                <button type="button" class="btn btn-success btn-lg" @onclick="MarcarPartidaListo" 
+                                        disabled="@(Yo.listo || jugadorDesconectado)">Listo</button>
+                            </div>
+                        </div>
+                        }
+
+                        <div class="col-6">
+                            <div class="input-group d-flex flex-column">
+                                <button type="button" class="btn btn-warning btn-lg" 
+                                        @onclick="AbandonarPartida">Abandonar</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@code
+{
+    const string CaracterVacio = "\u200D";
+    enum Modo { Normal, Contrarreloj, UnaVida, Memoria, Cambiante }
+    enum Dificultad { _4x4, _4x5, _4x6, _4x7, _4x8, _6x6, _6x7, _6x8, _8x8 }
+
+    int filas = 4;
+    int cols = 4;
+
+    bool partidaIniciada;
+
+    Modo modo = Modo.Normal;
+    Dificultad dificultad = Dificultad._4x4;
+
+    Timer temporizador;
+    int decimasDeSegundos = 0;
+    string tiempo = "0.0s";
+
+    string ultimoEmojiEncontrado = CaracterVacio;
+    int ultimoAnimalIndice = -1;
+
+    int parejasEncontradas = 0;
+    int puntos = 0;
+
+    int btnColValue = 6;
+    string colValue = "col-xl-9 col-lg-12";
+    string containerPaddingValue = "px-4";
+
+    List<string> emojisMezclados = new List<string>();
+    List<string> listaEmojis = new List<string>();
+
+    HubConnection unoVsUnoHubConnection;
+
+    Jugador1v1 Yo;
+    Jugador1v1 Oponente;
+
+    int PartidaId;
+    bool buscandoOponente;
+    bool partidaTerminada;
+    bool partidaEncontrada;
+    bool jugadorDesconectado;
+    bool mostrarResultadosOponente;
+
+    protected override void OnInitialized()
+    {
+        temporizador = new Timer(100);
+        temporizador.Elapsed += Timer_Tick;
+
+        Random ran = new Random();
+        Yo = new Jugador1v1() { Nickname = "Guest" + (10000 + ran.Next(90000 - 1)) };
+        //Yo.ParesTotal = emojisMezclados.Count / 2;
+        GenerarTablero();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ConnectToHub();
+    }
+
+    async Task ConnectToHub()
+    {
+        unoVsUnoHubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/uno_vs_uno_hub"))
+            .Build();
+
+        unoVsUnoHubConnection.On<int, Jugador1v1, Jugador1v1>("RecibirPartida", RecibirPartida);
+
+        unoVsUnoHubConnection.On<bool>("IniciarPartida", IniciarPartida);
+
+        unoVsUnoHubConnection.On<Jugador1v1, Jugador1v1>("RecibirMovimiento", RecibirMovimiento);
+
+        unoVsUnoHubConnection.On<Jugador1v1, Jugador1v1>("RecibirGanador", RecibirGanador);
+
+        unoVsUnoHubConnection.On("JugadorDesconectado", JugadorDesconectado);
+
+        await unoVsUnoHubConnection.StartAsync();
+    }
+
+    void RecibirPartida(int partidaId, Jugador1v1 jug1, Jugador1v1 jug2)
+    {
+        this.PartidaId = partidaId;
+        buscandoOponente = false;
+
+        if (jug1.Nickname == Yo.Nickname)
+        {
+            Oponente = jug2;
+            Yo.Id = jug1.Id;
+        }
+        else
+        {
+            Oponente = jug1;
+            Yo.Id = jug2.Id;
+        }
+
+        StateHasChanged();
+    }
+
+    void IniciarPartida(bool iniciada)
+    {
+        partidaIniciada = iniciada;
+
+        if (partidaIniciada)
+        {
+            SetupGame();
+            temporizador.Start();
+
+            StateHasChanged();
+        }
+    }
+
+    void RecibirMovimiento(Jugador1v1 jug1, Jugador1v1 jug2)
+    {
+        if(jug1.Id == Yo.Id && jug1.Nickname == Yo.Nickname)
+            Oponente = jug2;
+
+        else if (jug2.Id == Yo.Id && jug2.Nickname == Yo.Nickname)
+            Oponente = jug1;
+
+        if(Oponente.terminado)
+            mostrarResultadosOponente = true;
+
+        StateHasChanged();
+    }
+
+    void RecibirGanador(Jugador1v1 jug1, Jugador1v1 jug2)
+    {
+        if (jug1.Id == Yo.Id && jug1.Nickname == Yo.Nickname)
+        {
+            Oponente = jug2;
+            Yo = jug1;
+        }
+        else if (jug2.Id == Yo.Id && jug2.Nickname == Yo.Nickname)
+        {
+            Oponente = jug1;
+            Yo = jug2;
+        }
+
+        StateHasChanged();
+    }
+
+    void JugadorDesconectado()
+    {
+        TerminarPartida();
+        jugadorDesconectado = true;
+        StateHasChanged();
+    }
+
+    async Task BuscarOponente()
+    {
+        buscandoOponente = true;
+
+        string peticionString = "partida" + modo.ToString() + dificultad.ToString();
+
+        await unoVsUnoHubConnection.SendAsync("RecibirPeticion", Yo, peticionString);
+    }
+
+    async Task SolicitudCambiarPartida()
+    {
+
+    }
+
+    async Task MarcarPartidaListo()
+    {
+        Yo.listo = true;
+        Yo.ParesEncontrados = 0;
+
+        await unoVsUnoHubConnection.SendAsync("MarcarPartidaListo", PartidaId, Yo);
+    }
+
+    void MarcarParejaEncontrada()
+    {
+        Yo.Puntos = puntos;
+        Yo.Tiempo = tiempo;
+        Yo.ParesEncontrados = parejasEncontradas;
+        Yo.terminado = Yo.ParesEncontrados == Yo.ParesTotal;
+
+        unoVsUnoHubConnection.SendAsync("RecibirParejaEncontrada", PartidaId, Yo);
+    }
+
+    void GenerarTablero()
+    {
+        Random ran = new Random();
+        listaEmojis = Emojis.ObtenerListaAnimales(filas, cols);
+        emojisMezclados = listaEmojis.OrderBy(item => ran.Next()).ToList();
+        Yo.ParesTotal = emojisMezclados.Count / 2;
+    }
+
+    void SetupGame()
+    {
+        if (modo == Modo.Contrarreloj)
+            decimasDeSegundos = ObtenerTiempo();
+        else
+            decimasDeSegundos = 0;
+
+        parejasEncontradas = 0;
+        puntos = 0;
+        ultimoEmojiEncontrado = CaracterVacio;
+        ultimoAnimalIndice = -1;
+    }
+
+    void ReiniciarPartida()
+    {
+        TerminarPartida();
+        GenerarTablero();
+    }
+
+    async Task AbandonarPartida()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    void ReiniciarJugador()
+    {
+        Yo.Puntos = 0;
+        Yo.ParesEncontrados = 0;
+        Yo.Tiempo = "0.0s";
+        Yo.listo = false;
+        Yo.terminado = false;
+    }
+
+    void CambiarModo(ChangeEventArgs valor)
+    {
+        if(Oponente == null)
+        {
+            modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
+            SetearTiempo();
+        }
+    }
+
+    void SetearTiempo()
+    {
+        if (modo == Modo.Contrarreloj)
+        {
+            decimasDeSegundos = ObtenerTiempo();
+            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
+        }
+    }
+
+    void CambiarDificultad(ChangeEventArgs valor)
+    {
+        if (Oponente != null)
+            return;
+
+        dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), valor.Value.ToString());
+
+        switch (dificultad)
+        {
+            case Dificultad._4x4:
+                filas = 4;
+                cols = 4;
+                btnColValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x5:
+                filas = 5;
+                cols = 4;
+                btnColValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x6:
+                filas = 4;
+                cols = 6;
+                btnColValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x7:
+                filas = 7;
+                cols = 4;
+                btnColValue = 6;
+                colValue = "col-xl-9 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._4x8:
+                filas = 4;
+                cols = 8;
+                btnColValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._6x6:
+                filas = 6;
+                cols = 6;
+                btnColValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._6x7:
+                filas = 7;
+                cols = 6;
+                btnColValue = 4;
+                colValue = "col-xl-10 col-lg-12";
+                containerPaddingValue = "px-4";
+                break;
+
+            case Dificultad._6x8:
+                filas = 6;
+                cols = 8;
+                btnColValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-2";
+                break;
+
+            case Dificultad._8x8:
+                filas = 8;
+                cols = 8;
+                btnColValue = 3;
+                colValue = "col-12";
+                containerPaddingValue = "px-2";
+                break;
+        }
+
+        GenerarTablero();
+        SetearTiempo();
+    }
+
+    void SeleccionarCasilla(string animal, int index)
+    {
+        if (ultimoEmojiEncontrado == CaracterVacio)
+        {
+            ultimoEmojiEncontrado = animal;
+            ultimoAnimalIndice = index;
+        }
+        else if (ultimoEmojiEncontrado == animal && ultimoAnimalIndice != index)
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            emojisMezclados = emojisMezclados
+                .Select(a => a.Replace(animal, CaracterVacio))
+                .ToList();
+
+            puntos += CalcularPuntos();
+            parejasEncontradas++;
+            MarcarParejaEncontrada();
+
+            if (parejasEncontradas >= listaEmojis.Count / 2)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+        else
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            if (modo == Modo.UnaVida)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+    }
+
+    int CalcularPuntos()
+    {
+        int puntos = 200 - decimasDeSegundos;
+
+        if (puntos <= 10)
+            return 10;
+
+        return puntos;
+    }
+
+    void TerminarPartida()
+    {
+        temporizador.Stop();
+        partidaIniciada = false;
+    }
+
+    int ObtenerTiempo()
+    {
+        return ((int)dificultad + 1) * 100;
+    }
+
+    private void Timer_Tick(object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            if (modo != Modo.Contrarreloj)
+                decimasDeSegundos++;
+            else
+            {
+                decimasDeSegundos--;
+                if (decimasDeSegundos <= 0)
+                    TerminarPartida();
+            }
+
+            if (modo == Modo.Cambiante)
+            {
+                if (decimasDeSegundos % 7 == 0)
+                {
+                    CambiarPosicionCartas();
+                }
+            }
+
+            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
+            Yo.Tiempo = tiempo;
+            StateHasChanged();
+        });
+    }
+
+    void CambiarPosicionCartas()
+    {
+        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 2)
+        {
+            Random ran = new Random();
+            int indice1, indice2;
+
+            do
+            {
+                indice1 = ran.Next(emojisMezclados.Count);
+                indice2 = ran.Next(emojisMezclados.Count);
+            }
+            while (emojisMezclados[indice1] == CaracterVacio ||
+                   emojisMezclados[indice2] == CaracterVacio);
+
+            if (indice1 == ultimoAnimalIndice || indice2 == ultimoAnimalIndice)
+            {
+                ultimoEmojiEncontrado = CaracterVacio;
+                ultimoAnimalIndice = -1;
+            }
+
+            string emojiAux = emojisMezclados[indice1];
+            emojisMezclados[indice1] = emojisMezclados[indice2];
+            emojisMezclados[indice2] = emojiAux;
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        temporizador.Dispose();
+        await unoVsUnoHubConnection.DisposeAsync();
+    }
+}
