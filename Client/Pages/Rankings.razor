@@ -1,56 +1,64 @@
 ﻿@page "/rankings"
 
-<div class="container-fluid">
-    <div class="card shadow-lg">
-        <div class="card-header">
-            <h3>Rankings</h3>
-        </div>
-        <div class="row mb-3 mb-sm-4">
-            <div class="col-sm-6 mb-3 mb-sm-0">
-                <div class="input-group">
-                    <label class="input-group-text">Modo</label>
-                    <select class="form-select">
-                        <option value="0" selected>Normal</option>
-                        <option value="1">Contrarreloj</option>
-                        <option value="2">Una vida</option>
-                        <option value="3">Memoria</option>
-                        <option value="4">Cambiante</option>
-                    </select>
+<div class="container">
+    <div class="row justify-content-center">
+
+        <div class="card shadow-lg col-lg-8">
+            <div class="card-header">
+                <h3>Rankings</h3>
+            </div>
+
+            <div class="row mb-sm-2">
+
+                <div class="col-sm-4 ">
+                    <div class="input-group">
+                        <label class="input-group-text">Modo</label>
+                        <select class="form-select">
+                            <option value="0" selected>Normal</option>
+                            <option value="1">Contrarreloj</option>
+                            <option value="2">Una vida</option>
+                            <option value="3">Memoria</option>
+                            <option value="4">Cambiante</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-sm-4 ">
+                    <div class="input-group">
+                        <label class="input-group-text">Dificultad</label>
+                        <select class="form-select">
+                            <option value="0" selected>4 x 4</option>
+                            <option value="1">4 x 5</option>
+                            <option value="2">4 x 6</option>
+                            <option value="3">4 x 7</option>
+                            <option value="4">4 x 8</option>
+                            <option value="5">6 x 6</option>
+                            <option value="6">6 x 7</option>
+                            <option value="7">6 x 8</option>
+                            <option value="8">8 x 8</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-sm-6">
-                <div class="input-group">
-                    <label class="input-group-text">Dificultad</label>
-                    <select class="form-select"  >
-                        <option value="0" selected>4 x 4</option>
-                        <option value="1">4 x 5</option>
-                        <option value="2">4 x 6</option>
-                        <option value="3">4 x 7</option>
-                        <option value="4">4 x 8</option>
-                        <option value="5">6 x 6</option>
-                        <option value="6">6 x 7</option>
-                        <option value="7">6 x 8</option>
-                        <option value="8">8 x 8</option>
-                    </select>
-                </div>
+            <div class="col-lg-12">
+                <table class="table table-striped ">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Usuario</th>
+                            <th>Mejor Tiempo</th>
+                            <th>Puntos</th>
+                            <th>Victorias 1vs1</th>
+                            <th>Victorias Torneos</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody style="background-color: white;" />
+                </table>
             </div>
+
         </div>
-        
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Usuario</th>
-                    <th>Mejor Tiempo</th>
-                    <th>Puntos</th>
-                    <th>Victorias 1vs1</th>
-                    <th>Victorias Torneos</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody style="background-color: white;" />
-        </table>
     </div>
 </div>
 
