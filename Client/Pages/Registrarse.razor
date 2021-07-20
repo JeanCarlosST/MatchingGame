@@ -1,57 +1,62 @@
 ﻿@page "/register"
-    <div class="container">
+<div class="container">
 
-        <div class="row d-flex justify-content-center">
+    <div class="row d-flex justify-content-center">
 
-            <div class="col-lg-7 mt-md-4">
+        <div class="col-lg-6 mt-md-4 ">
+            <div class="card shadow-lg bg-info bg-gradient border-1 border-dark ">
 
-                <div class="card shadow-lg bg-info bg-gradient border-1 border-dark">
-
-                    <div class="card-header border-0 bg-transparent">
-                        <div class="d-flex flex-column text-center my-2">
-                            <div class="d-flex justify-content-center">
-                                <img class="rounded-circle" src="/Images/tempLogo.jpg" width="120" />
-                            </div>
-                            <span class="fs-4 mt-2">
-                                <b>Registrarse</b>
-                            </span>
+                <div class="card-header border-0 bg-transparent">
+                    <div class="d-flex flex-column text-center my-2">
+                        <div class="d-flex justify-content-center">
+                            <img class="rounded-circle" src="/Images/tempLogo.jpg" width="120" />
                         </div>
+                        <span class="fs-4 mt-2">
+                            <b>Registrarse</b>
+                        </span>
                     </div>
+                </div>
 
-                    <div class="d-flex justify-content-center ">
-                        <form>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="oi oi-person"></i></span>
-                                <input type="text" class="form-control m-0" placeholder="Nombres">
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="oi oi-envelope-closed"></i></span>
-                                <input type="text" class="form-control m-0" placeholder="Correo Electrónico">
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="oi oi-shield"></i></span>
-                                <input type="text" class="form-control m-0" placeholder="Nombre de usuario">
-                            </div>
-                            <div class="row">
-                                <div class="col input-group mb-2">
+                <div class="d-flex justify-content-center m-1 ">
+                    <form>
+                        <div class="input-group mb-3 ">
+                            <span class="input-group-text"><i class="oi oi-person"></i></span>
+                            <input type="text" class="form-control m-0" placeholder="Nombres">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="oi oi-envelope-closed"></i></span>
+                            <input type="text" class="form-control m-0" placeholder="Correo Electrónico">
+                        </div>
+                        <div class="input-group mb-3">
+                            <span class="input-group-text"><i class="oi oi-shield"></i></span>
+                            <input type="text" class="form-control m-0" placeholder="Nombre de usuario">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-6 mb-3">
+                                <div class=" input-group ">
                                     <span class="input-group-text"><i class="oi oi-key"></i></span>
                                     <input type="password" class="form-control" placeholder="Contraseña">
                                 </div>
-                                <div class="col input-group mb-2">
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="input-group ">
                                     <span class="input-group-text"><i class="oi oi-key"></i></span>
                                     <input type="password" class="form-control" placeholder="Confirmar contraseña">
                                 </div>
                             </div>
-                            <div class="d-flex flex-column mt-3">
-                                <button type="button" class="btn btn-success">Registrarse</button>
-                            </div>
-                        </form>
-                    </div>
+                        </div>
 
-                    <div class="my-4 text-center">
-                        ¿Ya estás registrado? <a href="/login">Iniciar Sesión</a>
-                    </div>
+                        <div class="d-flex flex-column">
+                            <button type="button" class="btn btn-success">Registrarse</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="my-4 text-center">
+                    ¿Ya estás registrado? <a href="/login">Iniciar Sesión</a>
                 </div>
             </div>
         </div>
     </div>
+</div>
