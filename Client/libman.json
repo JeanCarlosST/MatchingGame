@@ -3,6 +3,11 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
+      "library": "spinkit@2.0.1",
+      "destination": "wwwroot",
+      "files": [
+        "spinkit.min.css"
+      ]
       "library": "bootstrap-icons@1.5.0",
       "destination": "wwwroot/bootstrap-icons/"
     },

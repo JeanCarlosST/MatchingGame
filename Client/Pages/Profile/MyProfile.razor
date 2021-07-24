@@ -1,0 +1,246 @@
+﻿@page "/myprofile"
+
+<div class="container">
+
+    <div class="row d-flex justify-content-center">
+
+        <div class="col-lg-6 mt-md-4 ">
+            <div class="card shadow-lg bg-info bg-gradient border-1 border-dark ">
+                <div class="card-header border-1 bg-transparent">
+                    <div class="d-flex flex-column text-center my-2">
+                        <span class="fs-4 mt-2">
+                            <b>Mi Perfil</b>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center m-2 ">
+                    <EditForm Model="Usuario" OnValidSubmit="Guardar">
+                        <DataAnnotationsValidator />
+                        <form>
+                            <div class="input-group mb-3 ">
+                                <span class="input-group-text"><i class="oi oi-person"></i></span>
+                                <InputText @bind-Value="Usuario.Nombres" class="form-control m-0" placeholder="Nombres" disabled="@EditName" />
+                                <button @onclick="()=>Editar(ref EditName, Usuario.Nombres)" type="button" class="input-group-text"><i class="oi oi-pencil"></i></button>
+                            </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="oi oi-envelope-closed"></i></span>
+                                <InputText @bind-Value="Usuario.Email" class="form-control m-0" placeholder="Correo Electrónico" disabled="@EditEmail" />
+                                <button @onclick="()=>Editar(ref EditEmail, Usuario.Email)" type="button" class="input-group-text"><i class="oi oi-pencil"></i></button>
+                            </div>
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="oi oi-shield"></i></span>
+                                <InputText @bind-Value="Usuario.NickName" class="form-control m-0" placeholder="Nombre de usuario" disabled="@EditNick" />
+                                <button @onclick="()=>Editar(ref EditNick, Usuario.NickName)" type="button" class="input-group-text"><i class="oi oi-pencil"></i></button>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <span class="input-group-text justify-content-center">
+                                        Victorias 1vs1:
+                                    </span>
+                                    <span class="input-group-text justify-content-center">
+                                        @Usuario.Victorias1v1
+                                    </span>
+                                </div>
+
+                                <div class="col ">
+                                    <span class="input-group-text justify-content-center">
+                                        Victorias Torneos:
+                                    </span>
+                                    <span class="input-group-text justify-content-center">
+                                        @Usuario.VictoriasTorneos
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="bg-body ">
+                                <div class="btn-group shadow-sm" role="group" aria-label="Basic example">
+                                    <button type="button" class="btn btn-light" @onclick="()=>Amigos=1">Mis Amigos</button>
+                                    <button type="button" class="btn btn-light" @onclick="()=>Amigos=2">Solicitudes de Amistad</button>
+                                </div>
+                                @if (Amigos == 1)
+                                {
+                                    <div class="card-header border-1 bg-transparent">
+                                        <div class="d-flex flex-column text-center">
+                                            <span class="fs-4 mt-2">
+                                                <b>Mis Amigos</b>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <table class="table table-striped ">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Usuario</th>
+                                                <th>Victorias 1vs1</th>
+                                                <th>Victorias Torneos</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody style="background-color: white;">
+                                            @foreach (tempUser user in Usuario.ListaAmigos)
+                                            {
+                                                <tr>
+                                                    <td><i class="oi oi-person"></i></td>
+                                                    <td><a href="/userprofile/@user.id">@user.NickName</a></td>
+                                                    <td>@user.Victorias1v1</td>
+                                                    <td>@user.VictoriasTorneos</td>
+                                                    <td class="text-center align-baseline">
+                                                        <button type="button" class="btn btn-danger  small">
+                                                            x
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                                else if (Amigos == 2)
+                                {
+                                    <div class="card-header border-1 bg-transparent">
+                                        <div class="d-flex flex-column text-center">
+                                            <span class="fs-4 mt-2">
+                                                <b>Solicitudes de Amistad</b>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <table class="table table-striped ">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Usuario</th>
+                                                <th>Victorias 1vs1</th>
+                                                <th>Victorias Torneos</th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody style="background-color: white;">
+                                            @foreach (tempUser user in Usuario.Solicitudes)
+                                            {
+                                                <tr>
+                                                    <td>+</td>
+                                                    <td><a href="/userprofile/@user.id">@user.NickName</a></td>
+                                                    <td>@user.Victorias1v1</td>
+                                                    <td>@user.VictoriasTorneos</td>
+
+                                                    <td class="text-center align-baseline">
+                                                        <button type="button" class="btn btn-primary small">
+                                                            +
+                                                        </button>
+                                                    </td>
+                                                    <td class="text-center align-baseline">
+                                                        <button type="button" class="btn btn-danger  small">
+                                                            x
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        </form>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    public class tempUser
+    {
+        public int id { get; set; }
+        public string Nombres { get; set; }
+        public string NickName { get; set; }
+        public string Email { get; set; }
+        public int Victorias1v1 { get; set; }
+        public int VictoriasTorneos { get; set; }
+        public List<tempUser> ListaAmigos = new List<tempUser>();
+        public List<tempUser> Solicitudes = new List<tempUser>();
+
+    }
+    public static List<tempUser> Users;
+    public tempUser Usuario = new tempUser();
+
+    private bool EditNick = true;
+    private bool EditName = true;
+    private bool EditEmail = true;
+    public short Amigos = 0;
+
+    protected override void OnInitialized()
+    {
+        Nuevo();
+        Usuario = Users[0];
+    }
+    private void Nuevo()
+    {
+        Users = new List<tempUser>();
+
+        Users.Add(
+            new tempUser()
+            {
+                id = 1,
+                Nombres = "Alvin",
+                NickName = "AlvinDJA",
+                Email = "Alvin@.com ",
+                Victorias1v1 = 25,
+                VictoriasTorneos = 4
+            });
+        Users.Add(
+     new tempUser()
+     {
+         id = 2,
+         Nombres = "Diego",
+         NickName = "DiegoXX",
+         Email = "Diego@.com ",
+         Victorias1v1 = 2,
+         VictoriasTorneos = 1
+     });
+        Users.Add(
+    new tempUser()
+    {
+        id = 3,
+        Nombres = "Davi",
+        NickName = "DaviO.o",
+        Email = "Davi@.com ",
+        Victorias1v1 = 20,
+        VictoriasTorneos = 10
+    });
+        Users.Add(
+    new tempUser()
+    {
+        id = 4,
+        Nombres = "Wilson",
+        NickName = "Guison",
+        Email = "Wilson@.com ",
+        Victorias1v1 = 30,
+        VictoriasTorneos = 2
+    });
+        Users.Add(
+    new tempUser()
+    {
+        id = 5,
+        Nombres = "Jean",
+        NickName = "Kleyton",
+        Email = "Jean@.com ",
+        Victorias1v1 = 1,
+        VictoriasTorneos = 50
+    });
+        Users[0].ListaAmigos.Add(Users[1]);
+        Users[0].ListaAmigos.Add(Users[2]);
+        Users[0].Solicitudes.Add(Users[3]);
+        Users[0].Solicitudes.Add(Users[4]);
+    }
+
+    private void Editar(ref bool Edit, string Editable)
+    {
+        Edit = !Edit;
+        if (Edit)
+            Guardar();
+    }
+    private void Guardar()
+    {
+        ///Hazlo que guarde papá
+    }
+}

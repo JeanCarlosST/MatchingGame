@@ -1,13 +1,20 @@
+using MatchingGame.Server.DAL;
 using MatchingGame.Server.Helpers;
 using MatchingGame.Server.Hubs;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Linq;
+using System.Text;
 
 namespace MatchingGame.Server
 {
@@ -27,18 +34,67 @@ namespace MatchingGame.Server
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddSignalR();
+            services.AddDbContext<Contexto>();
             services.AddResponseCompression(opts =>
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     new[] { "application/octet-stream" });
             });
 
+            services.AddAuthentication(options =>
+            {
+                //options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            //.AddCookie(options => { options.LoginPath = "/user/notauthorized"; })
+            .AddJwtBearer(jwtBearerOptions =>
+            {
+                jwtBearerOptions.RequireHttpsMetadata = true;
+                jwtBearerOptions.SaveToken = true;
+                jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["JWTSettings:SecretKey"])),
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
+                };
+            })
+            .AddTwitter(twitterOptions =>
+            {
+                twitterOptions.ConsumerKey = Configuration["Authentication:Twitter:ConsumerKey"];
+                twitterOptions.ConsumerSecret = Configuration["Authentication:Twitter:ConsumerSecrete"];
+                twitterOptions.RetrieveUserDetails = true;
+            })
+            .AddFacebook(facebookOptions =>
+            {
+                facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
+                facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecrete"];
+            })
+            .AddGoogle(googleOptions =>
+            {
+                googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
+                googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+            });
+            services.AddLogging(logging =>
+            {
+                logging.ClearProviders();
+            });
+
+            services.AddHttpContextAccessor();
+            services.AddHttpClient();
+
             services.AddSingleton<GameManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
+            var serviceProvider = app.ApplicationServices.CreateScope().ServiceProvider;
+            var appDBContext = serviceProvider.GetRequiredService<Contexto>();
+            var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+            app.UseResponseCompression();
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -56,6 +112,9 @@ namespace MatchingGame.Server
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
