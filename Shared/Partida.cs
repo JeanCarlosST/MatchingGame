@@ -27,6 +27,60 @@ namespace MatchingGame.Shared
             JugadorUnoDetalle = new();
             JugadorDosDetalle = new();
         }
+
+        public Jugador Terminar()
+        {
+            Terminada = 
+                ((JugadorUnoDetalle.ParesEncontrados == ParesTotales) && 
+                (JugadorDosDetalle.ParesEncontrados == ParesTotales)) || 
+                ((JugadorUnoDetalle.Puntos == -1) && (JugadorDosDetalle.ParesEncontrados == ParesTotales)) || 
+                ((JugadorDosDetalle.Puntos == -1) && (JugadorUnoDetalle.ParesEncontrados == ParesTotales)) || 
+                ((JugadorUnoDetalle.Puntos == -1) && (JugadorDosDetalle.Puntos == -1));
+
+            if(Terminada)
+            {
+                if(Modo == Modo.Contrarreloj)
+                {
+                    if (JugadorUnoDetalle.Tiempo > JugadorDosDetalle.Tiempo)
+                    {
+                        JugadorUno.Victorias++;
+                        return JugadorUno;
+                    }
+                    else if (JugadorUnoDetalle.Tiempo == JugadorDosDetalle.Tiempo)
+                    {
+                        if (JugadorUnoDetalle.Puntos > JugadorDosDetalle.Puntos)
+                        {
+                            JugadorUno.Victorias++;
+                            return JugadorUno;
+                        }    
+                    }
+
+                    JugadorDos.Victorias++;
+                    return JugadorDos;
+                }
+                else
+                {
+                    if (JugadorUnoDetalle.Tiempo < JugadorDosDetalle.Tiempo)
+                    {
+                        JugadorUno.Victorias++;
+                        return JugadorUno;
+                    }
+                    else if (JugadorUnoDetalle.Tiempo == JugadorDosDetalle.Tiempo)
+                    {
+                        if (JugadorUnoDetalle.Puntos > JugadorDosDetalle.Puntos)
+                        {
+                            JugadorUno.Victorias++;
+                            return JugadorUno;
+                        }
+                    }
+
+                    JugadorDos.Victorias++;
+                    return JugadorDos;
+                }
+            }
+
+            return null;
+        }
     }
 
     public class PartidaJugadorDetalle
@@ -35,48 +89,4 @@ namespace MatchingGame.Shared
         public float Tiempo { get; set; }
         public int Puntos { get; set; }
     }
-        //public int PartidaId { get; set; }
-        //public Jugador1v1 JugadorUno { get; set; } = new Jugador1v1();
-        //public Jugador1v1 JugadorDos { get; set; } = new Jugador1v1();
-        //public bool Iniciada = false;
-        //public bool Terminada = false;
-
-        //public void JugadorUnoParEncontrado()
-        //{
-        //    JugadorUno.ParesEncontrados++;
-        //    JugadorUno.terminado = JugadorUno.ParesEncontrados == JugadorUno.ParesTotal;
-        //}
-
-        //public void JugadorDosParEncontrado()
-        //{
-        //    JugadorDos.ParesEncontrados++;
-        //    JugadorDos.terminado = JugadorDos.ParesEncontrados == JugadorDos.ParesTotal;
-        //}
-
-        //public int ObtenerJugadorUnoPares()
-        //{
-        //    return JugadorUno.ParesEncontrados;
-        //}
-
-        //public int ObtenerJugadorDosPares()
-        //{
-        //    return JugadorDos.ParesEncontrados;
-        //}
-
-        //public void Terminar()
-        //{
-        //    Terminada = JugadorUno.terminado && JugadorDos.terminado;
-        //    if(Terminada)
-        //    {
-        //        Iniciada = false;
-        //        JugadorUno.listo = false;
-        //        JugadorDos.listo = false;
-
-        //        if (JugadorUno.Puntos > JugadorDos.Puntos)
-        //            JugadorUno.Victorias++;
-        //        else
-        //            JugadorDos.Victorias++;
-        //    }
-        //}
-
 }

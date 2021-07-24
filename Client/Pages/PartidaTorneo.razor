@@ -1,4 +1,6 @@
 ﻿@using System.Timers;
+@using MatchingGame.Shared;
+@using Microsoft.AspNetCore.SignalR.Client
 
 <div class="row d-flex justify-content-center">
 
@@ -117,16 +119,16 @@
                     </div>
 
                     @*<div class="col-6">
-                        <div class="input-group d-flex flex-column">
-                            <button type="button" class="btn btn-warning btn-lg" @onclick="Rendirse">
-                                Rendirme
-                            </button>
-                        </div>
-                    </div>*@
+                            <div class="input-group d-flex flex-column">
+                                <button type="button" class="btn btn-warning btn-lg" @onclick="Rendirse">
+                                    Rendirme
+                                </button>
+                            </div>
+                        </div>*@
                 </div>
 
             </div>
-        
+
         </div>
     </div>
 </div>
@@ -182,7 +184,7 @@
 
     public void RefrescarDatosPartida(Partida partida = null)
     {
-        if(partida != null)
+        if (partida != null)
             this.Partida = partida;
 
         if (Partida.JugadorUno.Nickname.Equals(Yo.Nickname))

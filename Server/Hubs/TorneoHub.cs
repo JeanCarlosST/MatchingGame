@@ -17,15 +17,15 @@ namespace MatchingGame.Server.Hubs
             this.Manejador = manager;
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
+        public override Task OnConnectedAsync()
         {
-            return base.OnDisconnectedAsync(exception);
+            return base.OnConnectedAsync();
         }
 
         public async Task RecibirPeticion(Jugador jugador, string peticionStr)
         {
             Peticion peticion = new Peticion(jugador, Context.ConnectionId, peticionStr);
-
+            
             if (!Manejador.AgregarPeticion(peticion))
                 return;
 
@@ -60,7 +60,6 @@ namespace MatchingGame.Server.Hubs
 
                 Task.WaitAll(new[] { j1, j2 });
                 
-
                 if(partida.Terminada)
                 {
                     j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirMovimiento", partida));

@@ -121,8 +121,7 @@ namespace MatchingGame.Server
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
                 endpoints.MapHub<UnoVsUnoHub>("/uno_vs_uno_hub");
-                //endpoints.MapHub<PeticionHub>("/peticion_hub");
-                //endpoints.MapHub<PartidaHub>("/partida_hub");
+                endpoints.MapHub<TorneoHub>("/torneo_hub");
                 endpoints.MapFallbackToFile("index.html");
             });
         }
