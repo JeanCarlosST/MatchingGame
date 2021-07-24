@@ -1,0 +1,352 @@
+﻿@using System.Timers;
+
+<div class="row d-flex justify-content-center">
+
+    <div class="col-xl-8 col-lg-10 col-12">
+
+        <div class="row">
+
+            <div class="col-12 col-md-6">
+                <div class="row">
+                    @for (int j = 0; j < 2; j++)
+                    {
+                        <div class="col-6 p-0">
+                            @for (int i = 0; i < emojisMezclados.Count / 2; i++)
+                            {
+                                int index = (j * (listaEmojis.Count / 2)) + i;
+                                string animal = emojisMezclados[index];
+                                string btnClass = "btn-light border border-dark";
+
+                                @if (index == ultimoAnimalIndice)
+                                    btnClass = "btn-dark";
+
+                                <button type="button" class="btn @btnClass col-@btnColValue p-1" disabled="@(EsPartidaJugada())"
+                                        @onclick="@(() => SeleccionarCasilla(animal, index))">
+                                    <p class="fs-1 my-1 p-0">@animal</p>
+                                </button>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="row d-flex justify-content-center col-12 col-md-6 mt-3 mt-md-0">
+
+                <div class="col-6">
+                    <div class="card bg-primary">
+
+                        <div class="card-header text-center">
+                            <b>@Yo.Nickname - Tú</b>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="d-flex justify-content-center">
+                                <img src="Images/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <label>Pares:</label>
+                                    <label>@YoDetalle.ParesEncontrados/@Partida.ParesTotales</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <div class="row">
+                                <div class="col-6">
+                                    <label>Puntos:</label>
+                                    <label>@YoDetalle.Puntos</label>
+                                </div>
+                                <div class="col-6">
+                                    <label>Tiempo:</label>
+                                    <label><b>@YoDetalle.Tiempo.ToString("0.0s")</b></label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="col-6">
+                    <div class="card bg-danger">
+
+                        @if (Oponente != null)
+                        {
+                            <div class="card-header text-center">
+                                <b>@Oponente.Nickname - Oponente</b>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="d-flex justify-content-center">
+                                    <img src="Images/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <label>Pares:</label>
+                                        <label>@OponenteDetalle.ParesEncontrados/@Partida.ParesTotales</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-footer">
+                                <div class="row">
+                                    @if (mostrarResultadosOponente)
+                                    {
+                                        <div class="col-6">
+                                            <label>Puntos:</label>
+                                            <label>@OponenteDetalle.Puntos</label>
+                                        </div>
+                                        <div class="col-6">
+                                            <label>Tiempo:</label>
+                                            <label>@OponenteDetalle.Tiempo</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="col-12 row my-3">
+                    <div class="col-6">
+                        <div class="input-group d-flex flex-column">
+                            <button type="button" class="btn btn-primary btn-lg" @onclick="VerTablero" disabled="@(jugando && !EsPartidaJugada())">
+                                Ver tablero
+                            </button>
+                        </div>
+                    </div>
+
+                    @*<div class="col-6">
+                        <div class="input-group d-flex flex-column">
+                            <button type="button" class="btn btn-warning btn-lg" @onclick="Rendirse">
+                                Rendirme
+                            </button>
+                        </div>
+                    </div>*@
+                </div>
+
+            </div>
+        
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Partida Partida { get; set; }
+
+    [Parameter]
+    public Jugador Yo { get; set; }
+    public PartidaJugadorDetalle YoDetalle { get; set; }
+
+    [Parameter]
+    public HubConnection Hub { get; set; }
+
+    [Parameter]
+    public EventCallback VerTableroBtnHandler { get; set; }
+
+    const string CaracterVacio = "\u200D";
+
+    public Jugador Oponente { get; set; }
+    public PartidaJugadorDetalle OponenteDetalle { get; set; }
+
+    Timer temporizador;
+    int decimasDeSegundos = 0;
+
+    bool mostrarResultadosOponente;
+    bool partidaIniciada;
+    bool jugando;
+
+    string ultimoEmojiEncontrado = CaracterVacio;
+    int ultimoAnimalIndice = -1;
+
+    int btnColValue = 6;
+    string colValue = "col-xl-9 col-lg-12";
+    string containerPaddingValue = "px-4";
+
+    List<string> emojisMezclados = new List<string>();
+    List<string> listaEmojis = new List<string>();
+
+    protected override void OnInitialized()
+    {
+        RefrescarDatosPartida();
+
+        temporizador = new Timer(100);
+        temporizador.Elapsed += Timer_Tick;
+
+        if (!EsPartidaJugada())
+            GenerarTablero();
+        else
+            GenerarTableroVacio();
+    }
+
+    public void RefrescarDatosPartida(Partida partida = null)
+    {
+        if(partida != null)
+            this.Partida = partida;
+
+        if (Partida.JugadorUno.Nickname.Equals(Yo.Nickname))
+        {
+            Yo.ConnectionId = Partida.JugadorUno.ConnectionId;
+            YoDetalle = Partida.JugadorUnoDetalle;
+            Oponente = Partida.JugadorDos;
+            OponenteDetalle = Partida.JugadorDosDetalle;
+        }
+        else
+        {
+            Yo.ConnectionId = Partida.JugadorDos.ConnectionId;
+            YoDetalle = Partida.JugadorDosDetalle;
+            Oponente = Partida.JugadorUno;
+            OponenteDetalle = Partida.JugadorUnoDetalle;
+        }
+
+        if (OponenteDetalle.ParesEncontrados == Partida.ParesTotales)
+            mostrarResultadosOponente = true;
+
+        StateHasChanged();
+    }
+
+    bool EsPartidaJugada()
+    {
+        if (YoDetalle.Tiempo != 0 && YoDetalle.ParesEncontrados == Partida.ParesTotales)
+            return true;
+
+        return false;
+    }
+
+    void SeleccionarCasilla(string animal, int index)
+    {
+        if (ultimoEmojiEncontrado == CaracterVacio)
+        {
+            ultimoEmojiEncontrado = animal;
+            ultimoAnimalIndice = index;
+            temporizador.Start();
+            jugando = true;
+        }
+        else if (ultimoEmojiEncontrado == animal && ultimoAnimalIndice != index)
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            emojisMezclados = emojisMezclados
+                .Select(a => a.Replace(animal, CaracterVacio))
+                .ToList();
+
+            YoDetalle.Puntos += CalcularPuntos();
+            YoDetalle.ParesEncontrados++;
+            MarcarParejaEncontrada();
+
+            if (YoDetalle.ParesEncontrados >= listaEmojis.Count / 2)
+            {
+                TerminarPartida();
+            }
+        }
+        else
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            if (Partida.Modo == Modo.UnaVida)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+    }
+
+    async Task MarcarParejaEncontrada()
+    {
+        await Hub.SendAsync("RecibirParejaEncontrada", Partida, Yo, YoDetalle);
+        StateHasChanged();
+    }
+
+    int CalcularPuntos()
+    {
+        int puntos = 200 - decimasDeSegundos;
+
+        if (puntos <= 10)
+            return 10;
+
+        return puntos;
+    }
+
+    void GenerarTablero()
+    {
+        Random ran = new Random();
+        listaEmojis = Emojis.ObtenerListaAnimales(Partida.Dificultad);
+        emojisMezclados = listaEmojis.OrderBy(item => ran.Next()).ToList();
+    }
+
+    void GenerarTableroVacio()
+    {
+        for (int i = 0; i < Emojis.ObtenerParesTotales(Partida.Dificultad) * 2; i++)
+            emojisMezclados.Add(CaracterVacio);
+    }
+
+    void TerminarPartida()
+    {
+        temporizador.Stop();
+        partidaIniciada = false;
+    }
+
+    void VerTablero()
+    {
+        VerTableroBtnHandler.InvokeAsync();
+    }
+
+    void Rendirse()
+    {
+
+    }
+
+    private void Timer_Tick(object source, ElapsedEventArgs e)
+    {
+        InvokeAsync(() =>
+        {
+            if (Partida.Modo != Modo.Contrarreloj)
+                decimasDeSegundos++;
+            else
+            {
+                decimasDeSegundos--;
+                if (decimasDeSegundos <= 0)
+                    TerminarPartida();
+            }
+
+            if (Partida.Modo == Modo.Cambiante)
+            {
+                if (decimasDeSegundos % 7 == 0)
+                {
+                    CambiarPosicionCartas();
+                }
+            }
+
+            YoDetalle.Tiempo = (decimasDeSegundos / 10F);
+            StateHasChanged();
+        });
+    }
+
+    void CambiarPosicionCartas()
+    {
+        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 4)
+        {
+            Random ran = new Random();
+            int indice1, indice2;
+
+            do
+            {
+                indice1 = ran.Next(emojisMezclados.Count);
+                indice2 = ran.Next(emojisMezclados.Count);
+            }
+            while (emojisMezclados[indice1] == CaracterVacio ||
+                   emojisMezclados[indice2] == CaracterVacio);
+
+            if (indice1 == ultimoAnimalIndice || indice2 == ultimoAnimalIndice)
+            {
+                ultimoEmojiEncontrado = CaracterVacio;
+                ultimoAnimalIndice = -1;
+            }
+
+            string emojiAux = emojisMezclados[indice1];
+            emojisMezclados[indice1] = emojisMezclados[indice2];
+            emojisMezclados[indice2] = emojiAux;
+        }
+    }
+}

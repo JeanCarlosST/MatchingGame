@@ -34,20 +34,10 @@
                 </div>
             </div>
         </div>
-        <div class="position-relative d-none w-100 h-100 top-0 bottom-0" style="z-index: 100;">
-            <button class="btn btn-success">Listo</button>
-        </div>
+
         <div class="row">
             <div class="col-12 col-md-8">
-                <div class="container d-flex justify-content-center position-relative @containerPaddingValue">
-                    @if (!partidaIniciada)
-                    {
-                        <button type="button" class="btn btn-success btn-lg bg-gradient position-absolute top-50 start-50
-                                translate-middle fs-2 px-4 rounded-pill border border-1 border-dark" style="z-index: 1;"
-                                 @onclick="IniciarPartida">
-                            Listo
-                        </button>
-                    }
+                <div class="container d-flex justify-content-center @containerPaddingValue">
                     <div class="row @colValue">
                         @for (int j = 0; j < 2; j++)
                         {
@@ -74,8 +64,11 @@
 
             <div class="col-12 col-md-4 mt-3 mt-md-0">
                 <div class="d-flex flex-column mb-3">
-                    
-                    @if (partidaIniciada)
+                    @if (!partidaIniciada)
+                    {
+                        <button type="button" class="btn btn-success btn-lg" @onclick="IniciarPartida">Listo</button>
+                    }
+                    else
                     {
                         <button type="button" class="btn btn-warning btn-lg" @onclick="ReiniciarPartida">Reintentar</button>
                     }
@@ -99,6 +92,8 @@
 @code
 {
     const string CaracterVacio = "\u200D";
+    enum Modo { Normal, Contrarreloj, UnaVida, Memoria, Cambiante }
+    enum Dificultad { _4x4, _4x5, _4x6, _4x7, _4x8, _6x6, _6x7, _6x8, _8x8 }
 
     int filas = 4;
     int cols = 4;
@@ -349,7 +344,7 @@
 
     void CambiarPosicionCartas()
     {
-        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 4)
+        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 2)
         {
             Random ran = new Random();
             int indice1, indice2;
@@ -360,9 +355,7 @@
                 indice2 = ran.Next(emojisMezclados.Count);
             }
             while (emojisMezclados[indice1] == CaracterVacio ||
-                   emojisMezclados[indice2] == CaracterVacio ||
-                   indice1 == ultimoAnimalIndice ||
-                   indice2 == ultimoAnimalIndice);
+                   emojisMezclados[indice2] == CaracterVacio);
 
             if (indice1 == ultimoAnimalIndice || indice2 == ultimoAnimalIndice)
             {
