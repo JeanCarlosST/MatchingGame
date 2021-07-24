@@ -10,29 +10,85 @@ namespace MatchingGame.Server.Helpers
     {
         private List<Peticion> Peticiones { get; set; } = new();
         private List<Partida> Partidas { get; set; } = new();
+        private List<Torneo> Torneos { get; set; } = new();
+
+        public static (Modo modo, Dificultad dificultad) ObtenerModoYDificultad(string descripcion)
+        {
+            int index = descripcion.IndexOf("_");
+            string modoStr = descripcion.Substring(0, index);
+            string dificultadStr = descripcion.Substring(index);
+            Modo modo = (Modo)Enum.Parse(typeof(Modo), modoStr);
+            Dificultad dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), dificultadStr);
+
+            return (modo, dificultad);
+        }
 
         public bool AgregarPeticion(Peticion peticion)
         {
-            if (Peticiones.Find(p => p.Jugador.Id == peticion.Jugador.Id) != null)
+            if (Peticiones.Find(p => p.Jugador.ConnectionId == peticion.Jugador.ConnectionId) != null)
                 return false;
 
-            Peticion otraPeticion = Peticiones.Find(p => p.Descripcion == peticion.Descripcion && p.Jugador.Id != peticion.Jugador.Id);
-
-            if(otraPeticion != null)
+            if(peticion.Descripcion.Contains("partida"))
             {
-                Peticiones.Remove(otraPeticion);
-                Partida partida = new Partida()
-                {
-                    PartidaId = Partidas.Count + 1,
-                    JugadorUno = otraPeticion.Jugador,
-                    JugadorDos = peticion.Jugador
-                };
-                Partidas.Add(partida);
-            }
-            else
-                Peticiones.Add(peticion);
+                Peticion otraPeticion = 
+                    Peticiones.Find(p => 
+                        p.Descripcion == peticion.Descripcion && p.Jugador.ConnectionId != peticion.Jugador.ConnectionId);
 
-            return true;
+                if(otraPeticion != null)
+                {
+                    var (modo, dificultad) = ObtenerModoYDificultad(peticion.Descripcion);
+                    Peticiones.Remove(otraPeticion);
+                    Partida partida = new Partida(modo, dificultad)
+                    {
+                        PartidaId = Partidas.Count + 1,
+                        JugadorUno = otraPeticion.Jugador,
+                        JugadorDos = peticion.Jugador
+                    };
+                    Partidas.Add(partida);
+                }
+                else
+                    Peticiones.Add(peticion);
+            
+                return true;
+            }
+            else if (peticion.Descripcion.Contains("torneo"))
+            {
+                string cantStr = peticion.Descripcion.Replace("torneo", "");
+                int cantJug = Convert.ToInt32(cantStr);
+
+                Torneo torneo = BuscarTorneoDisponible(cantJug);
+
+                if (torneo == null) 
+                {
+                    torneo = new Torneo(cantJug);
+                    Torneos.Add(torneo);
+                }
+
+                torneo.AgregarJugador(peticion.Jugador);
+
+                if (torneo.CantMaxJugadores == torneo.Jugadores.Count)
+                    torneo.Iniciar();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public Torneo BuscarTorneoDisponible(int cantJug)
+        {
+            foreach(var torneo in Torneos)
+            {
+                if (!torneo.Terminado && torneo.CantMaxJugadores == cantJug &&
+                    torneo.CantMaxJugadores < torneo.Jugadores.Count)
+                    return torneo;
+            }
+            return null;
+        }
+
+        public Torneo EncontrarTorneo(Peticion peticion)
+        {
+            throw new NotImplementedException();
         }
 
         public Partida BuscarPartidaPorJugadorId(string connectionId)
@@ -45,6 +101,16 @@ namespace MatchingGame.Server.Helpers
                 }
             }
             return null;
+        }
+
+        public TorneoPartida ActualizarDatosPartida(TorneoPartida partida, Jugador jugador, PartidaJugadorDetalle jugDetalle)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void TerminarPartidaTorneo(TorneoPartida partida)
+        {
+            throw new NotImplementedException();
         }
 
         public void EliminarPartida(Partida partida)
@@ -73,6 +139,11 @@ namespace MatchingGame.Server.Helpers
         {   
             return Partidas.Find(p => p.JugadorUno.Id == peticion.Jugador.Id || 
                                       p.JugadorDos.Id == peticion.Jugador.Id);
+        }
+
+        internal Torneo BuscarTorneoPorPartida(TorneoPartida partida)
+        {
+            throw new NotImplementedException();
         }
 
         public Partida MarcarPartidaListo(int id, Jugador1v1 jugador)

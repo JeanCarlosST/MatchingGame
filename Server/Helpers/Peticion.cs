@@ -8,13 +8,13 @@ namespace MatchingGame.Server.Helpers
 {
     public class Peticion
     {
-        public Jugador1v1 Jugador { get; set; }
+        public Jugador Jugador { get; set; }
         public string Descripcion { get; set; }
 
-        public Peticion(Jugador1v1 jugador, string connectionId, string descripcion)
+        public Peticion(Jugador jugador, string connectionId, string descripcion)
         {
             this.Jugador = jugador;
-            this.Jugador.Id = connectionId;
+            this.Jugador.ConnectionId = connectionId;
             this.Descripcion = descripcion;
         }
     }

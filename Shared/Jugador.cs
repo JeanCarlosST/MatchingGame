@@ -8,8 +8,8 @@ namespace MatchingGame.Shared
 {
     public class Jugador
     {
-        public string JugadorId { get; set; }
-        public int UsuarioId { get; set; }
+        public string ConnectionId { get; set; }
         public string Nickname { get; set; }
+        public int Victorias { get; set; }
     }
 }

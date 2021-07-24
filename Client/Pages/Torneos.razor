@@ -1,43 +1,15 @@
 ﻿@page "/torneos"
 
-    <div class="container">
-        <div class="row d-flex justify-content-center">
-            <div class="card col-lg-6 mt-md-5 p-3">
-                <div class="card-body">
-                    <div class="form-group">
-                        <label>Nombre de usuario:</label>
-                        <input/>
-                    </div>
-                    <div class="form-group d-flex flex-column m-0 mt-3">
-                        <button type="button" class="btn btn-success btn-lg"
-                                @onclick="BuscarPartida" disabled="@(buscandoPartida)">
-                            @if (buscandoPartida)
-                            {
-                                <span>Buscando torneo...</span>
-                                <span class="spinner-border spinner-border-sm mb-1"></span>
-                            }
-                            else
-                            {
-                                <span>Buscar torneo</span>
-                            }
-                        </button>
-                        @if (buscandoPartida)
-                        {
-                            <span>@cant/8</span>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="container">
+    <div class="row d-flex justify-content-center">
+
+
+
     </div>
+</div>
 
 @code {
     private bool buscandoPartida = false;
-    private int cant = 1;
 
-    private void BuscarPartida()
-    {
-        buscandoPartida = true;
-    }
 
 }
