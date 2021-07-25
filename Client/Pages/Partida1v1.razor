@@ -3,6 +3,7 @@
 @using System.Timers;
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
+@inject IToastService Toast
 @implements IAsyncDisposable
 
 <div class="row d-flex justify-content-center">
@@ -16,8 +17,8 @@
                     <label class="input-group-text">Modo</label>
                     <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Modo.Normal" selected>Normal</option>
-                        @*<option value="@Modo.Contrarreloj">Contrarreloj</option>*@
-                        @*<option value="@Modo.UnaVida">Una vida</option>*@
+                        <option value="@Modo.Contrarreloj">Contrarreloj</option>
+                        <option value="@Modo.UnaVida">Una vida</option>
                         <option value="@Modo.Memoria" disabled>Memoria</option>
                         <option value="@Modo.Cambiante">Cambiante</option>
                     </select>
@@ -51,8 +52,18 @@
                     }
                     else if (!buscandoOponente)
                     {
-                        <button type="button" class="btn btn-info" @onclick="PeticionCambiarPartida" disabled="@(jugadorDesconectado)">
-                            Cambiar modo o dificultad
+                        <button type="button" class="btn btn-info d-flex justify-content-center" @onclick="PeticionCambiarPartida" disabled="@(jugadorDesconectado)">
+                            @if(esperandoAceptacionCambio)
+                            {
+                            <span>Esperando respuesta...</span>
+                            <div class="ml-2">
+                                <span class="spinner-border spinner-border-sm"></span>
+                            </div>
+                            }
+                            else
+                            {
+                            <span>Cambiar modo o dificultad</span>
+                            }
                         </button>
                     }
                     @if (buscandoOponente)
@@ -68,11 +79,11 @@
         <div class="row">
 
             <div class="col-12 col-md-6 position-relative">
-                @if (Oponente != null)
+                @if (Oponente != null && !partidaIniciada)
                 {
                     <button type="button" class="btn btn-success btn-lg bg-gradient position-absolute top-50 start-50
                                     translate-middle fs-2 px-4 rounded-pill border border-1 border-dark" style="z-index: 1;"
-                            @onclick="IniciarPartida" disabled="@(partidaIniciada || jugadorDesconectado)">
+                            @onclick="IniciarPartida" disabled="@(partidaIniciada || jugadorDesconectado || esperandoAceptacionCambio)">
                         Listo
                     </button>
                 }
@@ -110,7 +121,7 @@
 
                         <div class="card-body">
                             <div class="d-flex justify-content-center">
-                                <img src="Images/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
+                                <img src="Images/Faces/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
                             </div>
                             <div class="row mt-2">
                                 <div class="col-6">
@@ -153,7 +164,7 @@
                                 <div class="d-flex justify-content-center">
                                     @if (!jugadorDesconectado)
                                     {
-                                        <img src="Images/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
+                                        <img src="Images/Faces/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
                                     }
                                     else
                                     {
@@ -253,6 +264,7 @@
         <Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
                BtnVerdeTexto="Cambiar" BtnRojoTexto="Cancelar" OnClose="@CambiarPartida" />
     }
+
 </div>
 
 @code
@@ -329,26 +341,10 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/uno_vs_uno_hub"))
             .Build();
 
-        //unoVsUnoHubConnection.On<Partida>("RecibirPartida", RecibirPartida);
-        unoVsUnoHubConnection.On<Partida>("RecibirPartida", (partida) =>
-        {
-            Console.WriteLine($"ESTA MALDITA LINEA NO SE VA A IMPRIMIR COÑO");
-            RefrescarDatosPartida(partida);
-
-            StateHasChanged();
-        });
-
-        unoVsUnoHubConnection.On("Prueba", () =>
-        {
-            Console.WriteLine($"Estado: {unoVsUnoHubConnection.State}");
-        });
-
+        unoVsUnoHubConnection.On<Partida>("RecibirPartida", RecibirPartida);
         unoVsUnoHubConnection.On<Partida>("RecibirMovimiento", RefrescarDatosPartida);
-
         unoVsUnoHubConnection.On("JugadorDesconectado", JugadorDesconectado);
-
         unoVsUnoHubConnection.On<string>("RecibirPeticionCambio", RecibirPeticionCambio);
-
         unoVsUnoHubConnection.On<bool>("RespuestaPeticionCambio", RespuestaPeticionCambio);
 
         await unoVsUnoHubConnection.StartAsync();
@@ -357,6 +353,7 @@
     void RecibirPartida(Partida partida)
     {
         RefrescarDatosPartida(partida);
+        buscandoOponente = false;
 
         StateHasChanged();
     }
@@ -401,12 +398,6 @@
 
     void RecibirMovimiento(Partida partida)
     {
-        //if(jug1.ConnectionId == Yo.ConnectionId && jug1.Nickname == Yo.Nickname)
-        //    Oponente = jug2;
-
-        //else if (jug2.ConnectionId == Yo.ConnectionId && jug2.Nickname == Yo.Nickname)
-        //    Oponente = jug1;
-
         RefrescarDatosPartida(partida);
 
         if (OponenteDetalle.ParesEncontrados == Partida.ParesTotales)
@@ -417,6 +408,7 @@
 
     void JugadorDesconectado()
     {
+        modalCambiar = false;
         TerminarPartida();
         jugadorDesconectado = true;
         StateHasChanged();
@@ -424,25 +416,37 @@
 
     void RecibirPeticionCambio(string peticion)
     {
+        peticion = peticion.Replace("partida", "");
         int index = peticion.IndexOf("_");
         string modoStr = peticion.Substring(0, index);
         string dificultadStr = peticion.Substring(index);
+        Console.WriteLine($"Modo {modoStr} Dificultad {dificultadStr}");
 
         peticionModo = (Modo)Enum.Parse(typeof(Modo), modoStr);
         peticionDificultad = (Dificultad)Enum.Parse(typeof(Dificultad), dificultadStr);
+        Console.WriteLine("Mao");
 
-        peticionCambiar = $"{Oponente.Nickname} quiere cambiar la partida a modo {modoStr} en dificultad {dificultad}. ¿Aceptas?";
+        peticionCambiar = $"{Oponente.Nickname} quiere cambiar la partida a modo {modoStr} en dificultad {dificultadStr}. ¿Aceptas?";
         modalCambiar = true;
+        StateHasChanged();
     }
 
     void RespuestaPeticionCambio(bool respuesta)
     {
+        esperandoAceptacionCambio = false;
+        
         if (respuesta)
         {
-            esperandoAceptacionCambio = false;
             CambiarModo(peticionModo);
             CambiarDificultad(peticionDificultad);
+            Toast.ShowSuccess("El modo y dificultad fueron cambiados");
         }
+        else
+        {
+            Toast.ShowError("Cambio no aceptado");
+        }
+
+        StateHasChanged();
     }
 
     async Task BuscarOponente()
@@ -462,29 +466,20 @@
 
     async Task PeticionCambiarPartida()
     {
-        esperandoAceptacionCambio = true;
+        if(!esperandoAceptacionCambio && (peticionModo != modo || peticionDificultad != dificultad))
+        {   
+            esperandoAceptacionCambio = true;
 
-        string peticionString = "partida" + peticionModo.ToString() + peticionDificultad.ToString();
+            string peticionString = "partida" + peticionModo.ToString() + peticionDificultad.ToString();
 
-        await unoVsUnoHubConnection.SendAsync("RecibirPeticionCambioPartida", Partida, peticionString);
+            await unoVsUnoHubConnection.SendAsync("RecibirPeticionCambioPartida", Partida, Yo, peticionString);
 
-        StateHasChanged();
+            StateHasChanged();
+        }
     }
-
-    //async Task MarcarPartidaListo()
-    //{
-    //    YoDetalle.Listo = true;
-    //    YoDetalle.ParesEncontrados = 0;
-
-    //    await unoVsUnoHubConnection.SendAsync("MarcarPartidaListo", PartidaId, Yo);
-    //}
 
     void MarcarParejaEncontrada()
     {
-        //YoDetalle.Puntos = puntos;
-        //YoDetalle.ParesEncontrados = parejasEncontradas;
-        //YoDetalle.Terminado = YoDetalle.ParesEncontrados == Partida.ParesTotales;
-
         unoVsUnoHubConnection.SendAsync("RecibirParejaEncontrada", Partida, Yo, YoDetalle);
     }
 
@@ -517,8 +512,13 @@
 
     void ActivarModalAbandonar()
     {
-        modalAbandonar = true;
-        StateHasChanged();
+        if(!jugadorDesconectado)
+        {
+            modalAbandonar = true;
+            StateHasChanged();
+        }
+        else
+            AbandonarPartida(true);
     }
 
     void AbandonarPartida(bool abandonar)
@@ -539,17 +539,9 @@
             CambiarDificultad(peticionDificultad);
         }
 
-        modalCambiar = cambiar;
+        modalCambiar = false;
+        StateHasChanged();
     }
-
-    //void ReiniciarJugador()
-    //{
-    //    YoDetalle.Puntos = 0;
-    //    YoDetalle.ParesEncontrados = 0;
-    //    YoDetalle.Tiempo = 0.0f;
-    //    YoDetalle.Listo = false;
-    //    YoDetalle.Terminado = false;
-    //}
 
     void CambiarModo(ChangeEventArgs valor)
     {
