@@ -10,6 +10,7 @@ using MatchingGame.Client.Handlers;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System;
+using Blazored.Toast;
 
 namespace MatchingGame.Client
 {
@@ -30,6 +31,7 @@ namespace MatchingGame.Client
 
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             builder.Services.AddBlazoredLocalStorage();
+            builder.Services.AddBlazoredToast();
 
             builder.Services.AddTransient<CustomAuthorizationHandler>();
 
@@ -42,7 +44,6 @@ namespace MatchingGame.Client
                 logging.AddProvider(new ApplicationLoggerProvider(httpClient, authenticationStateProvider));
             });
 
-            //builder.Services.AddBlazoredToast();
 
             await builder.Build().RunAsync();
         }
