@@ -17,11 +17,6 @@ namespace MatchingGame.Server.Hubs
             this.Manejador = manager;
         }
 
-        public override Task OnConnectedAsync()
-        {
-            return base.OnConnectedAsync();
-        }
-
         public override async Task<Task> OnDisconnectedAsync(Exception exception)
         {
             var peticion = Manejador.BuscarPeticionPorJugadorId(Context.ConnectionId);
@@ -33,11 +28,11 @@ namespace MatchingGame.Server.Hubs
 
             if (partida != null)
             {
-                if (partida.JugadorUno.Id == Context.ConnectionId)
-                    await Clients.Client(partida.JugadorDos.Id).SendAsync("JugadorDesconectado");
+                if (partida.JugadorUno.ConnectionId == Context.ConnectionId)
+                    await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("JugadorDesconectado");
 
-                else if (partida.JugadorDos.Id == Context.ConnectionId)
-                    await Clients.Client(partida.JugadorUno.Id).SendAsync("JugadorDesconectado");
+                else if (partida.JugadorDos.ConnectionId == Context.ConnectionId)
+                    await Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("JugadorDesconectado");
 
                 Manejador.EliminarPartida(partida);
             }
@@ -45,63 +40,110 @@ namespace MatchingGame.Server.Hubs
             return base.OnDisconnectedAsync(exception);
         }
 
-        public async Task RecibirPeticion(Jugador1v1 jugador, string peticionStr)
+        public void RecibirPeticion(Jugador jugador, string peticionStr)
         {
             Peticion peticion = new Peticion(jugador, Context.ConnectionId, peticionStr);
 
-            if (!Manejador.AgregarPeticion(peticion))
-                return;
-
-            var partida = Manejador.EncontrarPartida(peticion);
-
-            if (partida != null)
+            if (Manejador.AgregarPeticion(peticion))
             {
-                await Clients.Client(partida.JugadorUno.Id).SendAsync("RecibirPartida", partida.PartidaId, partida.JugadorUno, partida.JugadorDos);
-                await Clients.Client(partida.JugadorDos.Id).SendAsync("RecibirPartida", partida.PartidaId, partida.JugadorUno, partida.JugadorDos);
+                Partida partida = Manejador.EncontrarPartida(peticion);
+                if (partida != null)
+                    EnviarPartidaAMetodo(partida, "RecibirPartida");
             }
         }
 
-        public async Task MarcarPartidaListo(int id, Jugador1v1 jugador)
+        public void RecibirParejaEncontrada(Partida partida, Jugador jugador, PartidaJugadorDetalle jugDetalle)
         {
-            Partida partida;
-
-            if (jugador.Id != Context.ConnectionId)
-                return;
-
-            partida = Manejador.MarcarPartidaListo(id, jugador);
-
-            if (partida != null)
+            if (jugador.ConnectionId == Context.ConnectionId)
             {
-                await Clients.Client(partida.JugadorUno.Id).SendAsync("IniciarPartida", partida.Iniciada);
-                await Clients.Client(partida.JugadorDos.Id).SendAsync("IniciarPartida", partida.Iniciada);
-            }
-        }
+                partida = Manejador.MarcarParejaEncontrada(partida, jugador, jugDetalle);
 
-        public void RecibirParejaEncontrada(int id, Jugador1v1 jugador)
-        {
-            Partida partida;
-
-            if (jugador.Id != Context.ConnectionId)
-                return;
-            
-            partida = Manejador.MarcarParejaEncontrada(id, jugador);
-
-            if (partida != null)
-            {
-                Task j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.Id).SendAsync("RecibirMovimiento", partida.JugadorUno, partida.JugadorDos));
-                Task j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.Id).SendAsync("RecibirMovimiento", partida.JugadorUno, partida.JugadorDos));
-
-                Task.WaitAll(new[] { j1, j2 });
-
-                partida.Terminar();
-                if(partida.Terminada)
+                if (partida != null)
                 {
-                    j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.Id).SendAsync("RecibirGanador", partida.JugadorUno, partida.JugadorDos));
-                    j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.Id).SendAsync("RecibirGanador", partida.JugadorUno, partida.JugadorDos));
+                    EnviarPartidaAMetodo(partida, "RecibirMovimiento");
+                    partida.Terminar();
 
-                    Task.WaitAll(new[] { j1, j2 });
+                    if (partida.Terminada)
+                        EnviarPartidaAMetodo(partida, "RecibirMovimiento");
                 }
             }
         }
+
+        public void PerderPartida(Partida partida, Jugador jugador)
+        {
+            if (jugador.ConnectionId == base.Context.ConnectionId)
+            {
+                partida = Manejador.BuscarPartidaPorJugadorId(jugador.ConnectionId);
+                partida = Manejador.PerderPartida(partida, jugador);
+
+                if (partida != null)
+                {
+                    EnviarPartidaAMetodo(partida, "RecibirMovimiento");
+                    partida.Terminar();
+                    
+                    if (partida.Terminada)
+                        EnviarPartidaAMetodo(partida, "RecibirMovimiento");
+                    
+                }
+            }
+        }
+
+        private void EnviarPartidaAMetodo(Partida partida, string metodo)
+        {
+            Task j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.ConnectionId).SendAsync(metodo, partida));
+            Task j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.ConnectionId).SendAsync(metodo, partida));
+
+            Task.WaitAll(new[] { j1, j2 });
+        }
+
+        public async Task RecibirPeticionCambioPartida(Partida partida, Jugador jugador, string peticionCambio)
+        {
+            if (jugador.ConnectionId == Context.ConnectionId)
+            {
+                partida = Manejador.BuscarPartidaPorJugadorId(jugador.ConnectionId);
+                if (partida != null)
+                {
+                    if (partida.JugadorUno.ConnectionId == jugador.ConnectionId)
+                        await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RecibirPeticionCambio", peticionCambio);
+                    
+                    else if (partida.JugadorDos.ConnectionId == jugador.ConnectionId)
+                        await Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirPeticionCambio", peticionCambio);
+                }
+            }
+        }
+
+        public async Task RecibirRespuestaCambioPartida(Partida partida, Jugador jugador, bool cambio, Modo modo, Dificultad dificultad)
+        {
+            if (jugador.ConnectionId == Context.ConnectionId)
+            {
+                partida = this.Manejador.BuscarPartidaPorJugadorId(jugador.ConnectionId);
+                if (partida != null)
+                {
+                    if (cambio)
+                    {
+                        partida.Modo = modo;
+                        partida.Dificultad = dificultad;
+                    }
+
+                    if (partida.JugadorUno.ConnectionId == jugador.ConnectionId)
+                    {
+                       await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RecibirPeticionCambio", cambio);
+                    }
+                    else if (partida.JugadorDos.ConnectionId == jugador.ConnectionId)
+                    {
+                        await Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirPeticionCambio", cambio);
+                    }
+                }
+            }
+        }
+
+        public void EliminarPeticionDeUsuario(string connectionId)
+        {
+            if (connectionId == Context.ConnectionId)
+            {
+                Manejador.EliminarPeticion(connectionId);
+            }
+        }
+
     }
 }

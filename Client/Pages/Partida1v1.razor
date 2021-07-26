@@ -3,6 +3,7 @@
 @using System.Timers;
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
+@inject IToastService Toast
 @implements IAsyncDisposable
 
 <div class="row d-flex justify-content-center">
@@ -14,7 +15,7 @@
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
                     <label class="input-group-text">Modo</label>
-                    <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada || Yo.listo || jugadorDesconectado)">
+                    <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Modo.Normal" selected>Normal</option>
                         <option value="@Modo.Contrarreloj">Contrarreloj</option>
                         <option value="@Modo.UnaVida">Una vida</option>
@@ -27,7 +28,7 @@
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
                     <label class="input-group-text">Dificultad</label>
-                    <select class="form-select" @onchange="CambiarDificultad" disabled="@(partidaIniciada || Yo.listo || jugadorDesconectado)">
+                    <select class="form-select" @onchange="CambiarDificultad" disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Dificultad._4x4" selected>4 x 4</option>
                         <option value="@Dificultad._4x5">4 x 5</option>
                         <option value="@Dificultad._4x6">4 x 6</option>
@@ -43,16 +44,32 @@
 
             <div class="col-sm-4">
                 <div class="input-group d-flex flex-column">
-                    @if (Oponente == null)
+                    @if (Oponente == null && !buscandoOponente)
                     {
                         <button type="button" class="btn btn-info" @onclick="BuscarOponente" disabled="@(buscandoOponente)">
                             Buscar oponente
                         </button>
                     }
-                    else
+                    else if (!buscandoOponente)
                     {
-                        <button type="button" class="btn btn-info" @onclick="SolicitudCambiarPartida" disabled="@(jugadorDesconectado)">
-                            Cambiar modo o dificultad
+                        <button type="button" class="btn btn-info d-flex justify-content-center" @onclick="PeticionCambiarPartida" disabled="@(jugadorDesconectado)">
+                            @if(esperandoAceptacionCambio)
+                            {
+                            <span>Esperando respuesta...</span>
+                            <div class="ml-2">
+                                <span class="spinner-border spinner-border-sm"></span>
+                            </div>
+                            }
+                            else
+                            {
+                            <span>Cambiar modo o dificultad</span>
+                            }
+                        </button>
+                    }
+                    @if (buscandoOponente)
+                    {
+                        <button type="button" class="btn btn-danger" @onclick="CancelarBusqueda">
+                            Cancelar búsqueda
                         </button>
                     }
                 </div>
@@ -61,7 +78,15 @@
 
         <div class="row">
 
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-6 position-relative">
+                @if (Oponente != null && !partidaIniciada)
+                {
+                    <button type="button" class="btn btn-success btn-lg bg-gradient position-absolute top-50 start-50
+                                    translate-middle fs-2 px-4 rounded-pill border border-1 border-dark" style="z-index: 1;"
+                            @onclick="IniciarPartida" disabled="@(partidaIniciada || jugadorDesconectado || esperandoAceptacionCambio)">
+                        Listo
+                    </button>
+                }
                 <div class="row">
                     @for (int j = 0; j < 2; j++)
                     {
@@ -96,12 +121,12 @@
 
                         <div class="card-body">
                             <div class="d-flex justify-content-center">
-                                <img src="Images/smileyFace.jpg" width="60" class="rounded-3" />
+                                <img src="Images/Faces/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
                             </div>
                             <div class="row mt-2">
                                 <div class="col-6">
                                     <label>Pares:</label>
-                                    <label>@Yo.ParesEncontrados/@Yo.ParesTotal</label>
+                                    <label>@YoDetalle.ParesEncontrados/@Partida.ParesTotales</label>
                                 </div>
                                 <div class="col-6">
                                     <label>Victorias:</label>
@@ -114,11 +139,11 @@
                             <div class="row">
                                 <div class="col-6">
                                     <label>Puntos:</label>
-                                    <label>@Yo.Puntos</label>
+                                    <label>@YoDetalle.Puntos</label>
                                 </div>
                                 <div class="col-6">
                                     <label>Tiempo:</label>
-                                    <label><b>@Yo.Tiempo</b></label>
+                                    <label><b>@YoDetalle.Tiempo.ToString("0.0s")</b></label>
                                 </div>
                             </div>
                         </div>
@@ -137,9 +162,9 @@
 
                             <div class="card-body">
                                 <div class="d-flex justify-content-center">
-                                    @if(!jugadorDesconectado)
+                                    @if (!jugadorDesconectado)
                                     {
-                                        <img src="Images/smileyFace.jpg" width="60" class="rounded-3" />
+                                        <img src="Images/Faces/smileyFace.jpg" width="60" class="rounded-circle border border-1 border-dark" />
                                     }
                                     else
                                     {
@@ -149,7 +174,7 @@
                                 <div class="row mt-2">
                                     <div class="col-6">
                                         <label>Pares:</label>
-                                        <label>@Oponente.ParesEncontrados/@Oponente.ParesTotal</label>
+                                        <label>@OponenteDetalle.ParesEncontrados/@Partida.ParesTotales</label>
                                     </div>
                                     <div class="col-6">
                                         <label>Victorias:</label>
@@ -160,21 +185,21 @@
 
                             <div class="card-footer">
                                 <div class="row">
-                                    @if(mostrarResultadosOponente)
+                                    @if (mostrarResultadosOponente)
                                     {
                                         <div class="col-6">
                                             <label>Puntos:</label>
-                                            <label>@Oponente.Puntos</label>
+                                            <label>@OponenteDetalle.Puntos</label>
                                         </div>
                                         <div class="col-6">
                                             <label>Tiempo:</label>
-                                            <label>@Oponente.Tiempo</label>
+                                            <label>@OponenteDetalle.Tiempo</label>
                                         </div>
                                     }
                                 </div>
                             </div>
                         }
-                        else if(buscandoOponente)
+                        else if (buscandoOponente)
                         {
                             <div class="card-header text-center">
                                 <b>...</b>
@@ -192,26 +217,32 @@
                             <div class="card-footer">
                             </div>
                         }
+                        else
+                        {
+                            <div class="card-header p-4">
+
+                            </div>
+
+                            <div class="card-body py-5 my-4">
+
+                            </div>
+
+                            <div class="card-footer p-4">
+
+                            </div>
+                        }
                     </div>
                 </div>
 
                 <div class="col-12 row my-3">
                     @if (Oponente != null)
                     {
-                        @if (!partidaIniciada)
-                        {
                         <div class="col-6">
                             <div class="input-group d-flex flex-column">
-                                <button type="button" class="btn btn-success btn-lg" @onclick="MarcarPartidaListo" 
-                                        disabled="@(Yo.listo || jugadorDesconectado)">Listo</button>
-                            </div>
-                        </div>
-                        }
-
-                        <div class="col-6">
-                            <div class="input-group d-flex flex-column">
-                                <button type="button" class="btn btn-warning btn-lg" 
-                                        @onclick="AbandonarPartida">Abandonar</button>
+                                <button type="button" class="btn btn-warning btn-lg"
+                                        @onclick="ActivarModalAbandonar">
+                                    Abandonar
+                                </button>
                             </div>
                         </div>
                     }
@@ -222,14 +253,23 @@
         </div>
 
     </div>
+    @if (modalAbandonar)
+    {
+        <Modal Titulo="Abandonar partida" Descripcion="¿Seguro que quieres abandonar la partida?"
+               BtnVerdeTexto="Abandonar" BtnRojoTexto="Cancelar" OnClose="@AbandonarPartida" />
+    }
+
+    @if (modalCambiar)
+    {
+        <Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
+               BtnVerdeTexto="Cambiar" BtnRojoTexto="Cancelar" OnClose="@CambiarPartida" />
+    }
 
 </div>
 
 @code
 {
     const string CaracterVacio = "\u200D";
-    enum Modo { Normal, Contrarreloj, UnaVida, Memoria, Cambiante }
-    enum Dificultad { _4x4, _4x5, _4x6, _4x7, _4x8, _6x6, _6x7, _6x8, _8x8 }
 
     int filas = 4;
     int cols = 4;
@@ -239,9 +279,11 @@
     Modo modo = Modo.Normal;
     Dificultad dificultad = Dificultad._4x4;
 
+    Modo peticionModo;
+    Dificultad peticionDificultad;
+
     Timer temporizador;
     int decimasDeSegundos = 0;
-    string tiempo = "0.0s";
 
     string ultimoEmojiEncontrado = CaracterVacio;
     int ultimoAnimalIndice = -1;
@@ -258,8 +300,11 @@
 
     HubConnection unoVsUnoHubConnection;
 
-    Jugador1v1 Yo;
-    Jugador1v1 Oponente;
+    Partida Partida;
+    Jugador Yo;
+    PartidaJugadorDetalle YoDetalle;
+    Jugador Oponente;
+    PartidaJugadorDetalle OponenteDetalle;
 
     int PartidaId;
     bool buscandoOponente;
@@ -267,15 +312,21 @@
     bool partidaEncontrada;
     bool jugadorDesconectado;
     bool mostrarResultadosOponente;
+    bool modalAbandonar;
+    bool modalCambiar;
+    bool esperandoAceptacionCambio;
+    string peticionCambiar;
 
     protected override void OnInitialized()
     {
         temporizador = new Timer(100);
         temporizador.Elapsed += Timer_Tick;
+        Partida = new Partida(modo, dificultad);
+        YoDetalle = new PartidaJugadorDetalle();
+        OponenteDetalle = new PartidaJugadorDetalle();
 
         Random ran = new Random();
-        Yo = new Jugador1v1() { Nickname = "Guest" + (10000 + ran.Next(90000 - 1)) };
-        //Yo.ParesTotal = emojisMezclados.Count / 2;
+        Yo = new Jugador() { Nickname = "Guest" + (10000 + ran.Next(90000 - 1)) };
         GenerarTablero();
     }
 
@@ -290,41 +341,51 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/uno_vs_uno_hub"))
             .Build();
 
-        unoVsUnoHubConnection.On<int, Jugador1v1, Jugador1v1>("RecibirPartida", RecibirPartida);
-
-        unoVsUnoHubConnection.On<bool>("IniciarPartida", IniciarPartida);
-
-        unoVsUnoHubConnection.On<Jugador1v1, Jugador1v1>("RecibirMovimiento", RecibirMovimiento);
-
-        unoVsUnoHubConnection.On<Jugador1v1, Jugador1v1>("RecibirGanador", RecibirGanador);
-
+        unoVsUnoHubConnection.On<Partida>("RecibirPartida", RecibirPartida);
+        unoVsUnoHubConnection.On<Partida>("RecibirMovimiento", RefrescarDatosPartida);
         unoVsUnoHubConnection.On("JugadorDesconectado", JugadorDesconectado);
+        unoVsUnoHubConnection.On<string>("RecibirPeticionCambio", RecibirPeticionCambio);
+        unoVsUnoHubConnection.On<bool>("RespuestaPeticionCambio", RespuestaPeticionCambio);
 
         await unoVsUnoHubConnection.StartAsync();
     }
 
-    void RecibirPartida(int partidaId, Jugador1v1 jug1, Jugador1v1 jug2)
+    void RecibirPartida(Partida partida)
     {
-        this.PartidaId = partidaId;
+        RefrescarDatosPartida(partida);
         buscandoOponente = false;
-
-        if (jug1.Nickname == Yo.Nickname)
-        {
-            Oponente = jug2;
-            Yo.Id = jug1.Id;
-        }
-        else
-        {
-            Oponente = jug1;
-            Yo.Id = jug2.Id;
-        }
 
         StateHasChanged();
     }
 
-    void IniciarPartida(bool iniciada)
+    public void RefrescarDatosPartida(Partida partida)
     {
-        partidaIniciada = iniciada;
+        this.Partida = partida;
+
+        if (Partida.JugadorUno.Nickname.Equals(Yo.Nickname))
+        {
+            Yo.ConnectionId = Partida.JugadorUno.ConnectionId;
+            YoDetalle = Partida.JugadorUnoDetalle;
+            Oponente = Partida.JugadorDos;
+            OponenteDetalle = Partida.JugadorDosDetalle;
+        }
+        else
+        {
+            Yo.ConnectionId = Partida.JugadorDos.ConnectionId;
+            YoDetalle = Partida.JugadorDosDetalle;
+            Oponente = Partida.JugadorUno;
+            OponenteDetalle = Partida.JugadorUnoDetalle;
+        }
+
+        if (OponenteDetalle.ParesEncontrados == Partida.ParesTotales)
+            mostrarResultadosOponente = true;
+
+        StateHasChanged();
+    }
+
+    void IniciarPartida()
+    {
+        partidaIniciada = true;
 
         if (partidaIniciada)
         {
@@ -335,40 +396,56 @@
         }
     }
 
-    void RecibirMovimiento(Jugador1v1 jug1, Jugador1v1 jug2)
+    void RecibirMovimiento(Partida partida)
     {
-        if(jug1.Id == Yo.Id && jug1.Nickname == Yo.Nickname)
-            Oponente = jug2;
+        RefrescarDatosPartida(partida);
 
-        else if (jug2.Id == Yo.Id && jug2.Nickname == Yo.Nickname)
-            Oponente = jug1;
-
-        if(Oponente.terminado)
+        if (OponenteDetalle.ParesEncontrados == Partida.ParesTotales)
             mostrarResultadosOponente = true;
-
-        StateHasChanged();
-    }
-
-    void RecibirGanador(Jugador1v1 jug1, Jugador1v1 jug2)
-    {
-        if (jug1.Id == Yo.Id && jug1.Nickname == Yo.Nickname)
-        {
-            Oponente = jug2;
-            Yo = jug1;
-        }
-        else if (jug2.Id == Yo.Id && jug2.Nickname == Yo.Nickname)
-        {
-            Oponente = jug1;
-            Yo = jug2;
-        }
 
         StateHasChanged();
     }
 
     void JugadorDesconectado()
     {
+        modalCambiar = false;
         TerminarPartida();
         jugadorDesconectado = true;
+        StateHasChanged();
+    }
+
+    void RecibirPeticionCambio(string peticion)
+    {
+        peticion = peticion.Replace("partida", "");
+        int index = peticion.IndexOf("_");
+        string modoStr = peticion.Substring(0, index);
+        string dificultadStr = peticion.Substring(index);
+        Console.WriteLine($"Modo {modoStr} Dificultad {dificultadStr}");
+
+        peticionModo = (Modo)Enum.Parse(typeof(Modo), modoStr);
+        peticionDificultad = (Dificultad)Enum.Parse(typeof(Dificultad), dificultadStr);
+        Console.WriteLine("Mao");
+
+        peticionCambiar = $"{Oponente.Nickname} quiere cambiar la partida a modo {modoStr} en dificultad {dificultadStr}. ¿Aceptas?";
+        modalCambiar = true;
+        StateHasChanged();
+    }
+
+    void RespuestaPeticionCambio(bool respuesta)
+    {
+        esperandoAceptacionCambio = false;
+        
+        if (respuesta)
+        {
+            CambiarModo(peticionModo);
+            CambiarDificultad(peticionDificultad);
+            Toast.ShowSuccess("El modo y dificultad fueron cambiados");
+        }
+        else
+        {
+            Toast.ShowError("Cambio no aceptado");
+        }
+
         StateHasChanged();
     }
 
@@ -381,35 +458,37 @@
         await unoVsUnoHubConnection.SendAsync("RecibirPeticion", Yo, peticionString);
     }
 
-    async Task SolicitudCambiarPartida()
+    async Task CancelarBusqueda()
     {
-
+        buscandoOponente = false;
+        await unoVsUnoHubConnection.SendAsync("EliminarPeticionDeUsuario", unoVsUnoHubConnection.ConnectionId);
     }
 
-    async Task MarcarPartidaListo()
+    async Task PeticionCambiarPartida()
     {
-        Yo.listo = true;
-        Yo.ParesEncontrados = 0;
+        if(!esperandoAceptacionCambio && (peticionModo != modo || peticionDificultad != dificultad))
+        {   
+            esperandoAceptacionCambio = true;
 
-        await unoVsUnoHubConnection.SendAsync("MarcarPartidaListo", PartidaId, Yo);
+            string peticionString = "partida" + peticionModo.ToString() + peticionDificultad.ToString();
+
+            await unoVsUnoHubConnection.SendAsync("RecibirPeticionCambioPartida", Partida, Yo, peticionString);
+
+            StateHasChanged();
+        }
     }
 
     void MarcarParejaEncontrada()
     {
-        Yo.Puntos = puntos;
-        Yo.Tiempo = tiempo;
-        Yo.ParesEncontrados = parejasEncontradas;
-        Yo.terminado = Yo.ParesEncontrados == Yo.ParesTotal;
-
-        unoVsUnoHubConnection.SendAsync("RecibirParejaEncontrada", PartidaId, Yo);
+        unoVsUnoHubConnection.SendAsync("RecibirParejaEncontrada", Partida, Yo, YoDetalle);
     }
 
     void GenerarTablero()
     {
         Random ran = new Random();
-        listaEmojis = Emojis.ObtenerListaAnimales(filas, cols);
+        listaEmojis = Emojis.ObtenerListaAnimales(dificultad);
         emojisMezclados = listaEmojis.OrderBy(item => ran.Next()).ToList();
-        Yo.ParesTotal = emojisMezclados.Count / 2;
+        Partida.ParesTotales = emojisMezclados.Count / 2;
     }
 
     void SetupGame()
@@ -431,27 +510,54 @@
         GenerarTablero();
     }
 
-    async Task AbandonarPartida()
+    void ActivarModalAbandonar()
     {
-        NavigationManager.NavigateTo("/");
+        if(!jugadorDesconectado)
+        {
+            modalAbandonar = true;
+            StateHasChanged();
+        }
+        else
+            AbandonarPartida(true);
     }
 
-    void ReiniciarJugador()
+    void AbandonarPartida(bool abandonar)
     {
-        Yo.Puntos = 0;
-        Yo.ParesEncontrados = 0;
-        Yo.Tiempo = "0.0s";
-        Yo.listo = false;
-        Yo.terminado = false;
+        if (abandonar)
+            NavigationManager.NavigateTo("/");
+
+        modalAbandonar = abandonar;
+    }
+
+    async Task CambiarPartida(bool cambiar)
+    {
+        await unoVsUnoHubConnection.SendAsync("RecibirRespuestaCambioPartida", Partida, Yo, cambiar, peticionModo, peticionDificultad);
+
+        if (cambiar)
+        {
+            CambiarModo(peticionModo);
+            CambiarDificultad(peticionDificultad);
+        }
+
+        modalCambiar = false;
+        StateHasChanged();
     }
 
     void CambiarModo(ChangeEventArgs valor)
     {
-        if(Oponente == null)
-        {
-            modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
-            SetearTiempo();
-        }
+        Modo modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
+        peticionModo = modo;
+
+        if (Oponente != null)
+            return;
+
+        CambiarModo(peticionModo);
+    }
+
+    void CambiarModo(Modo modo)
+    {
+        this.modo = modo;
+        SetearTiempo();
     }
 
     void SetearTiempo()
@@ -459,17 +565,23 @@
         if (modo == Modo.Contrarreloj)
         {
             decimasDeSegundos = ObtenerTiempo();
-            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
+            YoDetalle.Tiempo = (decimasDeSegundos / 10F);
         }
     }
 
     void CambiarDificultad(ChangeEventArgs valor)
     {
+        Dificultad dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), valor.Value.ToString());
+        peticionDificultad = dificultad;
         if (Oponente != null)
             return;
 
-        dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), valor.Value.ToString());
+        CambiarDificultad(peticionDificultad);
+    }
 
+    void CambiarDificultad(Dificultad dificultad)
+    {
+        this.dificultad = dificultad;
         switch (dificultad)
         {
             case Dificultad._4x4:
@@ -570,6 +682,7 @@
 
             if (parejasEncontradas >= listaEmojis.Count / 2)
             {
+                unoVsUnoHubConnection.SendAsync("PerderPartida", Partida, Yo).Wait();
                 TerminarPartida();
                 GenerarTablero();
             }
@@ -617,7 +730,10 @@
             {
                 decimasDeSegundos--;
                 if (decimasDeSegundos <= 0)
+                {
+                    unoVsUnoHubConnection.SendAsync("PerderPartida", Partida, Yo).Wait();
                     TerminarPartida();
+                }
             }
 
             if (modo == Modo.Cambiante)
@@ -628,15 +744,14 @@
                 }
             }
 
-            tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
-            Yo.Tiempo = tiempo;
+            YoDetalle.Tiempo = (decimasDeSegundos / 10F);
             StateHasChanged();
         });
     }
 
     void CambiarPosicionCartas()
     {
-        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 2)
+        if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 4)
         {
             Random ran = new Random();
             int indice1, indice2;
@@ -647,7 +762,9 @@
                 indice2 = ran.Next(emojisMezclados.Count);
             }
             while (emojisMezclados[indice1] == CaracterVacio ||
-                   emojisMezclados[indice2] == CaracterVacio);
+                   emojisMezclados[indice2] == CaracterVacio ||
+                   indice1 == ultimoAnimalIndice ||
+                   indice2 == ultimoAnimalIndice);
 
             if (indice1 == ultimoAnimalIndice || indice2 == ultimoAnimalIndice)
             {

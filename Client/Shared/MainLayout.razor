@@ -1,12 +1,19 @@
 ﻿@inherits LayoutComponentBase
+@using Blazored.Toast.Configuration
 
 <header>
     <NavMenu />  
 </header>
 
 <div class="container-fluid " style="background-image: url('./Images/EmojiBack.jpg'); width:inherit; ">
+    <BlazoredToasts Position="ToastPosition.BottomRight"
+                    IconType="IconType.FontAwesome"
+                    ErrorIcon="fas fa-sad-tear"
+                    ShowProgressBar="true"
+                    ErrorClass="error-toast-override"/>
+
     <main role="main" class="content mx-0 mx-sm-5" style="height:inherit; ">
         @Body
     </main>
-</div>
+</div
 

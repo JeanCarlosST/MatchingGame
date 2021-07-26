@@ -1,0 +1,94 @@
+﻿@inject NavigationManager NavigationManager;
+
+<div class="row my-2 py-2 rounded-3 bg-primary bg-gradient border border-1 border-dark">
+    <div class="col-5 row m-0 p-0 d-flex justify-content-center position-relative">
+        <div class="col-12 d-flex justify-content-center">
+            @if (Ganador() != 0)
+            {
+                if (Ganador() == 1)
+                {
+                    <img class="rounded-circle border border-1 border-dark" src="Images/Faces/happyFace.jpg" width="50">
+                    <span class="position-absolute top-0 start-50 translate-middle badge">
+                        <span class="fas fa-crown text-warning fs-4"></span>
+                    </span>
+                }
+                else
+                {
+                    <img class="rounded-circle border border-1 border-dark" src="Images/Faces/sadFace.jpg" width="50">
+                }
+            }
+            else
+            {
+                <img class="rounded-circle border border-1 border-dark" src="Images/Faces/smileyFace.jpg" width="50">
+            }
+        </div>
+        
+        <div class="col-12 text-center fw-bold">
+            <label>@Partida.JugadorUno.Nickname</label>
+        </div>
+    </div>
+    <div class="col-2 d-flex flex-column align-items-center justify-content-center m-0 p-0 text-center">
+        <span class="fw-bold fs-4 mx-2">VS</span>
+        @if (EsMiPartida && !Partida.Terminada)
+        {
+            <button type="button" class="btn btn-success" @onclick="Jugar">
+                Jugar
+            </button>
+        }
+    </div>
+    <div class="col-5 row m-0 p-0 d-flex justify-content-center position-relative">
+        <div class="col-12 d-flex justify-content-center">
+            @if (Ganador() != 0)
+            {
+                if (Ganador() == 2)
+                {
+                    <img class="rounded-circle border border-1 border-dark" src="Images/Faces/happyFace.jpg" width="50">
+                    <span class="position-absolute top-0 start-50 translate-middle badge">
+                        <span class="fas fa-crown text-warning fs-4"></span>
+                    </span>
+                }
+                else
+                {
+                    <img class="rounded-circle border border-1 border-dark" src="Images/Faces/sadFace.jpg" width="50">
+                }
+            }
+            else
+            {
+                <img class="rounded-circle border border-1 border-dark" src="Images/Faces/smileyFace.jpg" width="50">
+            }
+        </div>
+        
+        <div class="col-12 text-center fw-bold">
+            <label>@Partida.JugadorDos.Nickname</label>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public TorneoPartida Partida { get; set; }
+
+    [Parameter]
+    public bool EsMiPartida { get; set; }
+
+    [Parameter]
+    public EventCallback JugarBtnHandler { get; set; }
+
+    private void Jugar()
+    {
+        JugarBtnHandler.InvokeAsync();
+    }
+
+    private int Ganador()
+    {
+        Console.WriteLine("Ganador");
+        if(Partida.Terminada)
+        {
+            if (Partida.JugadorUnoDetalle.Tiempo < Partida.JugadorDosDetalle.Tiempo)
+                return 1;
+
+            return 2;
+        }
+
+        return 0;
+    }
+}

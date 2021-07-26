@@ -8,48 +8,85 @@ namespace MatchingGame.Shared
     public class Partida
     {
         public int PartidaId { get; set; }
-        public Jugador1v1 JugadorUno { get; set; } = new Jugador1v1();
-        public Jugador1v1 JugadorDos { get; set; } = new Jugador1v1();
-        public bool Iniciada = false;
-        public bool Terminada = false;
+        public Jugador JugadorUno { get; set; }
+        public Jugador JugadorDos { get; set; }
+        public PartidaJugadorDetalle JugadorUnoDetalle { get; set; }
+        public PartidaJugadorDetalle JugadorDosDetalle { get; set; }
+        public Modo Modo { get; set; }
+        public Dificultad Dificultad { get; set; }
+        public int ParesTotales { get; set; }
+        public bool Iniciada { get; set; }
+        public bool Terminada { get; set; }
+        public DateTime Fecha { get; set; }
 
-        public void JugadorUnoParEncontrado()
+        public Partida(Modo modo, Dificultad dificultad)
         {
-            JugadorUno.ParesEncontrados++;
-            JugadorUno.terminado = JugadorUno.ParesEncontrados == JugadorUno.ParesTotal;
+            this.Modo = modo;
+            this.Dificultad = dificultad;
+            this.ParesTotales = Emojis.ObtenerParesTotales(dificultad);
+            JugadorUnoDetalle = new();
+            JugadorDosDetalle = new();
         }
 
-        public void JugadorDosParEncontrado()
+        public Jugador Terminar()
         {
-            JugadorDos.ParesEncontrados++;
-            JugadorDos.terminado = JugadorDos.ParesEncontrados == JugadorDos.ParesTotal;
-        }
+            Terminada = 
+                ((JugadorUnoDetalle.ParesEncontrados == ParesTotales) && 
+                (JugadorDosDetalle.ParesEncontrados == ParesTotales)) || 
+                ((JugadorUnoDetalle.Puntos == -1) && (JugadorDosDetalle.ParesEncontrados == ParesTotales)) || 
+                ((JugadorDosDetalle.Puntos == -1) && (JugadorUnoDetalle.ParesEncontrados == ParesTotales)) || 
+                ((JugadorUnoDetalle.Puntos == -1) && (JugadorDosDetalle.Puntos == -1));
 
-        public int ObtenerJugadorUnoPares()
-        {
-            return JugadorUno.ParesEncontrados;
-        }
-
-        public int ObtenerJugadorDosPares()
-        {
-            return JugadorDos.ParesEncontrados;
-        }
-
-        public void Terminar()
-        {
-            Terminada = JugadorUno.terminado && JugadorDos.terminado;
             if(Terminada)
             {
-                Iniciada = false;
-                JugadorUno.listo = false;
-                JugadorDos.listo = false;
+                if(Modo == Modo.Contrarreloj)
+                {
+                    if (JugadorUnoDetalle.Tiempo > JugadorDosDetalle.Tiempo)
+                    {
+                        JugadorUno.Victorias++;
+                        return JugadorUno;
+                    }
+                    else if (JugadorUnoDetalle.Tiempo == JugadorDosDetalle.Tiempo)
+                    {
+                        if (JugadorUnoDetalle.Puntos > JugadorDosDetalle.Puntos)
+                        {
+                            JugadorUno.Victorias++;
+                            return JugadorUno;
+                        }    
+                    }
 
-                if (JugadorUno.Puntos > JugadorDos.Puntos)
-                    JugadorUno.Victorias++;
-                else
                     JugadorDos.Victorias++;
-            }
-        }
+                    return JugadorDos;
+                }
+                else
+                {
+                    if (JugadorUnoDetalle.Tiempo < JugadorDosDetalle.Tiempo)
+                    {
+                        JugadorUno.Victorias++;
+                        return JugadorUno;
+                    }
+                    else if (JugadorUnoDetalle.Tiempo == JugadorDosDetalle.Tiempo)
+                    {
+                        if (JugadorUnoDetalle.Puntos > JugadorDosDetalle.Puntos)
+                        {
+                            JugadorUno.Victorias++;
+                            return JugadorUno;
+                        }
+                    }
 
+                    JugadorDos.Victorias++;
+                    return JugadorDos;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    public class PartidaJugadorDetalle
+    {
+        public int ParesEncontrados { get; set; }
+        public float Tiempo { get; set; }
+        public int Puntos { get; set; }
     }
 }
