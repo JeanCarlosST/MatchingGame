@@ -25,9 +25,9 @@ namespace MatchingGame.Client
 
             ClaimsIdentity identity = new ClaimsIdentity();
 
-            if (token != null && String.IsNullOrEmpty(token))
+            if (token != null && !String.IsNullOrEmpty(token))
             {
-                Usuarios usuarioActual = await userService.GetUserByJWT(token);
+                Usuarios usuarioActual = await userService.ObtenerUsuarioPorJWT(token);
                 identity = GetClaimsIdentity(usuarioActual);
             }
 
@@ -72,14 +72,5 @@ namespace MatchingGame.Client
 
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
         }
-
-        //public async Task<Usuarios> GetUserByJWTAsync()
-        //{
-        //    var jwtToken = await _localStorageService.GetItemAsStringAsync("jwt_token");
-        //    if(jwtToken == null) return null;
-
-        //    return await _loginViewModel.GetUserByJWTAsync(jwtToken);
-        //}
-
     }
 }

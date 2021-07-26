@@ -14,7 +14,9 @@ namespace MatchingGame.Server
     public interface IJwtUtils
     {
         public string GenerarJWTToken(Usuarios usuario);
+        public string ObtenerUsuarioPorJWT(string jwtToken);
         public int? ValidarJWTToken(string token);
+
     }
 
     public class JwtUtils : IJwtUtils
@@ -33,8 +35,9 @@ namespace MatchingGame.Server
             
             var claimEmail = new Claim(ClaimTypes.Email, usuario.Email);
             var claimNameIdentifier = new Claim(ClaimTypes.NameIdentifier, usuario.UsuarioId.ToString());
+            var claimNickname = new Claim(ClaimTypes.Name, usuario.NickName);
 
-            var claimsIdentity = new ClaimsIdentity(new[] { claimEmail, claimNameIdentifier }, "serverAuth");
+            var claimsIdentity = new ClaimsIdentity(new[] { claimEmail, claimNameIdentifier, claimNickname }, "serverAuth");
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -46,6 +49,40 @@ namespace MatchingGame.Server
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public string ObtenerUsuarioPorJWT(string jwtToken)
+        {
+            try
+            {
+                var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
+
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+                var tokenHandler = new JwtSecurityTokenHandler();
+                SecurityToken securityToken;
+
+                var principle = tokenHandler.ValidateToken(jwtToken, tokenValidationParameters, out securityToken);
+                var jwtSecurityToken = (JwtSecurityToken)securityToken;
+
+                if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var userId = principle.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    return userId;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception : " + ex.Message);
+                return null;
+            }
+
+            return null;
         }
 
         public int? ValidarJWTToken(string token)
@@ -63,19 +100,16 @@ namespace MatchingGame.Server
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuer = false,
                     ValidateAudience = false,
-                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
                 var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-                // return user id from JWT token if validation successful
                 return userId;
             }
             catch
             {
-                // return null if validation fails
                 return null;
             }
         }

@@ -36,9 +36,15 @@ namespace MatchingGame.Server.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<bool>> RegistrarUsuario(RegisterModel usuarioRegistro)
         {
-            //in this method you should only create a user record and not authenticate the user
             var respuesta = userService.RegistrarUsuario(usuarioRegistro);
 
+            return await Task.FromResult(respuesta);
+        }
+
+        [HttpPost("obtener_usuario")]
+        public async Task<ActionResult<Usuarios>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
+        {
+            var respuesta = userService.ObtenerUsuarioPorJWT(jwtToken);
             return await Task.FromResult(respuesta);
         }
 

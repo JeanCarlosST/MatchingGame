@@ -15,6 +15,7 @@ namespace MatchingGame.Server.Services
     {
         Usuarios Autenticar(LoginModel usuarioLogin);
         bool RegistrarUsuario(RegisterModel usarioRegistro);
+        public Usuarios ObtenerUsuarioPorJWT(string jwtToken);
     }
 
     public class UserService : IUserService
@@ -58,6 +59,21 @@ namespace MatchingGame.Server.Services
             }
 
             return false;
+        }
+
+        public Usuarios ObtenerUsuarioPorJWT(string jwtToken)
+        {
+            string id = jwtUtils.ObtenerUsuarioPorJWT(jwtToken);
+            Usuarios usuario = null;
+
+            if (!String.IsNullOrEmpty(id))
+            {
+                usuario = contexto.Usuarios
+                    .Where(u => u.UsuarioId == Convert.ToInt32(id))
+                    .FirstOrDefault();
+            }
+
+            return usuario;
         }
     }
 }

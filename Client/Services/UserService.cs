@@ -14,7 +14,7 @@ namespace MatchingGame.Client.Services
     {
         public Task<Usuarios> LoginAsync(LoginModel usuarioLogin);
         public Task<bool> RegisterAsync(RegisterModel usuarioRegister);
-        public Task<Usuarios> GetUserByJWT(string jwt);
+        public Task<Usuarios> ObtenerUsuarioPorJWT(string jwt);
     }
 
     public class UserService : IUserService
@@ -26,20 +26,21 @@ namespace MatchingGame.Client.Services
             this.httpClient = _httpClient;
         }
 
-        public Task<Usuarios> GetUserByJWT(string jwt)
+        public async Task<Usuarios> ObtenerUsuarioPorJWT(string jwtToken)
         {
-            throw new NotImplementedException();
+            var respuesta = await httpClient.PostAsJsonAsync("user/obtener_usuario", jwtToken);
+            var cuerpo = await respuesta.Content.ReadAsStringAsync();
+            var usuarioDevuelto = JsonConvert.DeserializeObject<Usuarios>(cuerpo);
+            return await Task.FromResult(usuarioDevuelto);
         }
 
         public async Task<Usuarios> LoginAsync(LoginModel usuarioLogin)
         {
             //usuarioLogin.Clave = Utility.Encrypt(usuarioLogin.Clave);
-            var respuesta = await httpClient.PostAsJsonAsync<LoginModel>($"user/login?esPersistente={usuarioLogin.Recuerdame}", usuarioLogin);
-
+            var respuesta = await httpClient.PostAsJsonAsync<LoginModel>(
+                $"user/login?esPersistente={usuarioLogin.Recuerdame}", usuarioLogin);
             var cuerpo = await respuesta.Content.ReadAsStringAsync();
-
             var usuarioDevuelto = JsonConvert.DeserializeObject<Usuarios>(cuerpo);
-
             return await Task.FromResult(usuarioDevuelto);
         }
 
@@ -48,11 +49,8 @@ namespace MatchingGame.Client.Services
             //usuarioRegister.Clave = Utility.Encrypt(usuarioRegister.Clave);
             Console.WriteLine(httpClient.BaseAddress);
             var respuesta = await httpClient.PostAsJsonAsync<RegisterModel>("user/register", usuarioRegister);
-
             var cuerpo = await respuesta.Content.ReadAsStringAsync();
-
             var usuarioDevuelto = JsonConvert.DeserializeObject<bool>(cuerpo);
-
             return await Task.FromResult(usuarioDevuelto);
         }
     }
