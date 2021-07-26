@@ -4,7 +4,10 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @inject IToastService Toast
+@inject AuthenticationStateProvider AuthStateProvider
 @implements IAsyncDisposable
+
+@attribute [Authorize]
 
 <div class="row d-flex justify-content-center">
 
@@ -52,18 +55,18 @@
                     }
                     else if (!buscandoOponente)
                     {
-                        <button type="button" class="btn btn-info d-flex justify-content-center" 
+                        <button type="button" class="btn btn-info d-flex justify-content-center"
                                 @onclick="PeticionCambiarPartida" disabled="@(jugadorDesconectado || partidaIniciada)">
-                            @if(esperandoAceptacionCambio)
+                            @if (esperandoAceptacionCambio)
                             {
-                            <span>Esperando respuesta...</span>
-                            <div class="ml-2">
-                                <span class="spinner-border spinner-border-sm"></span>
-                            </div>
+                                <span>Esperando respuesta...</span>
+                                <div class="ml-2">
+                                    <span class="spinner-border spinner-border-sm"></span>
+                                </div>
                             }
                             else
                             {
-                            <span>Cambiar modo o dificultad</span>
+                                <span>Cambiar modo o dificultad</span>
                             }
                         </button>
                     }
@@ -321,13 +324,25 @@
         YoDetalle = new PartidaJugadorDetalle();
         OponenteDetalle = new PartidaJugadorDetalle();
 
-        Random ran = new Random();
-        Yo = new Jugador() { Nickname = "Guest" + (10000 + ran.Next(90000 - 1)) };
+        Yo = new Jugador();
+
         GenerarTablero();
+    }
+
+    async Task<string> ObtenerNicknameUsuario()
+    {
+        var authState = await ((CustomAuthenticationStateProvider)AuthStateProvider).GetAuthenticationStateAsync();
+        var usuario = authState.User;
+
+        if (usuario.Claims.Count() > 0)
+            return usuario.Claims?.First(c => c.Type == ClaimTypes.Name).Value;
+
+        return "";
     }
 
     protected override async Task OnInitializedAsync()
     {
+        Yo.Nickname = await ObtenerNicknameUsuario();
         await ConnectToHub();
     }
 
@@ -489,19 +504,19 @@
 
     async Task PeticionCambiarPartida()
     {
-        if(oponenteJugando)
+        if (oponenteJugando)
         {
             Toast.ShowError("Tu oponente está jugando. Espera que termine", "Petición inválida");
             return;
         }
 
-        if(OponenteDetalle.Puntos != 0 && !partidaIniciada)
+        if (OponenteDetalle.Puntos != 0 && !partidaIniciada)
         {
             Toast.ShowError("Tu oponente ya ha jugado, juega para poder cambiar", "Petición inválida");
             return;
         }
 
-        if(!esperandoAceptacionCambio && (peticionModo != modo || peticionDificultad != dificultad))
+        if (!esperandoAceptacionCambio && (peticionModo != modo || peticionDificultad != dificultad))
         {
             esperandoAceptacionCambio = true;
 
@@ -545,7 +560,7 @@
 
     void ActivarModalAbandonar()
     {
-        if(!jugadorDesconectado)
+        if (!jugadorDesconectado)
         {
             modalAbandonar = true;
             StateHasChanged();
