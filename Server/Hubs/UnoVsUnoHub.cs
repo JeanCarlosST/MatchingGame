@@ -48,7 +48,10 @@ namespace MatchingGame.Server.Hubs
             {
                 Partida partida = Manejador.EncontrarPartida(peticion);
                 if (partida != null)
+                {
+                    partida.Iniciada = true;
                     EnviarPartidaAMetodo(partida, "RecibirPartida");
+                }
             }
         }
 
@@ -60,11 +63,11 @@ namespace MatchingGame.Server.Hubs
 
                 if (partida != null)
                 {
-                    EnviarPartidaAMetodo(partida, "RecibirMovimiento");
                     partida.Terminar();
+                    //EnviarPartidaAMetodo(partida, "RecibirMovimiento");
 
-                    if (partida.Terminada)
-                        EnviarPartidaAMetodo(partida, "RecibirMovimiento");
+                    EnviarPartidaAMetodo(partida, "RecibirMovimiento");
+                    //if (partida.Terminada)
                 }
             }
         }
@@ -96,6 +99,22 @@ namespace MatchingGame.Server.Hubs
             Task.WaitAll(new[] { j1, j2 });
         }
 
+        private async Task JugadorIniciaPartida(Jugador jugador)
+        {
+            if (jugador.ConnectionId == Context.ConnectionId)
+            {
+                var partida = Manejador.BuscarPartidaPorJugadorId(jugador.ConnectionId);
+                if (partida != null)
+                {
+                    if (partida.JugadorUno.ConnectionId == jugador.ConnectionId)
+                        await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("OponenteJugando");
+
+                    else if (partida.JugadorDos.ConnectionId == jugador.ConnectionId)
+                        await Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("OponenteJugando");
+                }
+            }
+        }
+
         public async Task RecibirPeticionCambioPartida(Partida partida, Jugador jugador, string peticionCambio)
         {
             if (jugador.ConnectionId == Context.ConnectionId)
@@ -116,7 +135,7 @@ namespace MatchingGame.Server.Hubs
         {
             if (jugador.ConnectionId == Context.ConnectionId)
             {
-                partida = this.Manejador.BuscarPartidaPorJugadorId(jugador.ConnectionId);
+                partida = Manejador.BuscarPartidaPorJugadorId(jugador.ConnectionId);
                 if (partida != null)
                 {
                     if (cambio)
@@ -127,11 +146,11 @@ namespace MatchingGame.Server.Hubs
 
                     if (partida.JugadorUno.ConnectionId == jugador.ConnectionId)
                     {
-                       await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RecibirPeticionCambio", cambio);
+                       await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RespuestaPeticionCambio", cambio);
                     }
                     else if (partida.JugadorDos.ConnectionId == jugador.ConnectionId)
                     {
-                        await Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirPeticionCambio", cambio);
+                        await Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RespuestaPeticionCambio", cambio);
                     }
                 }
             }

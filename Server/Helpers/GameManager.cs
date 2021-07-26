@@ -217,10 +217,10 @@ namespace MatchingGame.Server.Helpers
             if (partida != null)
             {
                 if (partida.JugadorUno.ConnectionId == jugador.ConnectionId)
-                    partida.JugadorDosDetalle.Puntos = -1;
+                    partida.JugadorUnoDetalle.Puntos = -1;
 
                 else if (partida.JugadorDos.ConnectionId == jugador.ConnectionId)
-                    partida.JugadorUnoDetalle.Puntos = -1;
+                    partida.JugadorDosDetalle.Puntos = -1;
             }
             
             return partida;
@@ -228,38 +228,20 @@ namespace MatchingGame.Server.Helpers
 
         public Partida MarcarParejaEncontrada(Partida partida, Jugador jugador, PartidaJugadorDetalle jugDetalle)
         {
-            if (!partida.Iniciada || partida.Terminada)
-                return null;
+            if (!partida.Terminada)
+            {
+                partida = Partidas.Find(p => p.Equals(partida));
 
-            partida = Partidas.Find(p => p.Equals(partida));
+                if (partida.JugadorUno.Nickname == jugador.Nickname && partida.JugadorUno.ConnectionId == jugador.ConnectionId)
+                    partida.JugadorUnoDetalle = jugDetalle;
 
-            if (partida.JugadorUno.Nickname == jugador.Nickname && partida.JugadorUno.ConnectionId == jugador.ConnectionId)
-                partida.JugadorUnoDetalle = jugDetalle;
-            
-            else if (partida.JugadorDos.Nickname == jugador.Nickname && partida.JugadorDos.ConnectionId == jugador.ConnectionId)
-                partida.JugadorDosDetalle = jugDetalle;
-            
-            return partida;
+                else if (partida.JugadorDos.Nickname == jugador.Nickname && partida.JugadorDos.ConnectionId == jugador.ConnectionId)
+                    partida.JugadorDosDetalle = jugDetalle;
 
-            //var partida = Partidas.Find(
-            //    p => p.PartidaId == id
-            //);
+                return partida;
+            }
 
-            //if(partida != null && !partida.Terminada)
-            //{
-            //    if (partida.JugadorUno.Id == jugador.Id && partida.JugadorUno.Nickname == jugador.Nickname)
-            //    { 
-            //        partida.JugadorUnoParEncontrado();
-            //        partida.JugadorUno = jugador;
-            //    }
-            //    else if (partida.JugadorDos.Id == jugador.Id && partida.JugadorDos.Nickname == jugador.Nickname)
-            //    {
-            //        partida.JugadorDosParEncontrado();
-            //        partida.JugadorDos = jugador;
-            //    }
-            //}
-
-            //return partida;
+            return null;
         }
     }
 }

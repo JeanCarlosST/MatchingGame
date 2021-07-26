@@ -81,6 +81,37 @@ namespace MatchingGame.Shared
 
             return null;
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() != typeof(Partida))
+                return false;
+
+            Partida partida = (Partida)obj;
+
+            if (!JugadorUno.Equals(partida.JugadorUno))
+                return false;
+
+            if (!JugadorDos.Equals(partida.JugadorDos))
+                return false;
+
+            if (Modo != partida.Modo)
+                return false;
+
+            if (Dificultad != partida.Dificultad)
+                return false;
+
+            if (ParesTotales != partida.ParesTotales)
+                return false;
+
+            if (Iniciada != partida.Iniciada)
+                return false;
+
+            if (Terminada != partida.Terminada)
+                return false;
+
+            return true;
+        }
     }
 
     public class PartidaJugadorDetalle

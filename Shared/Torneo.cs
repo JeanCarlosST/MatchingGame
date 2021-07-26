@@ -43,7 +43,8 @@ namespace MatchingGame.Shared
         {
             for(int i = 0; i < JugadoresSigteRonda.Count / 2; i++)
             {
-                TorneoPartida partida = new TorneoPartida(Modo.Normal, Dificultad._4x4, RondaActual)
+                var (modo, dificultad) = ObtenerModoYDificultadPorRonda(RondaActual);
+                TorneoPartida partida = new TorneoPartida(modo, dificultad, RondaActual)
                 {
                     JugadorUno = JugadoresSigteRonda[i * 2],
                     JugadorDos = JugadoresSigteRonda[(i * 2) + 1],
@@ -53,6 +54,23 @@ namespace MatchingGame.Shared
             }
 
             JugadoresSigteRonda.Clear();
+        }
+
+        public static (Modo, Dificultad) ObtenerModoYDificultadPorRonda(int ronda)
+        {
+            switch(ronda)
+            {
+                case 0:
+                    return (Modo.Normal, Dificultad._4x4);
+                case 1:
+                    return (Modo.Normal, Dificultad._4x6);
+                case 2:
+                    return (Modo.Normal, Dificultad._4x8);
+                case 3:
+                    return (Modo.Normal, Dificultad._8x8);
+                default:
+                    return (Modo.Normal, Dificultad._4x4);
+            }
         }
 
         public void VerificarPaseDeRonda()
@@ -90,37 +108,6 @@ namespace MatchingGame.Shared
         public TorneoPartida(Modo modo, Dificultad dificultad, int ronda) : base(modo, dificultad)
         {
             this.Ronda = ronda;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj.GetType() != typeof(TorneoPartida))
-                return false;
-
-            TorneoPartida partida = (TorneoPartida)obj;
-
-            if (!JugadorUno.Equals(partida.JugadorUno))
-                return false;
-            
-            if (!JugadorDos.Equals(partida.JugadorDos))
-                return false;
-            
-            if (Modo != partida.Modo)
-                return false;
-            
-            if (Dificultad != partida.Dificultad)
-                return false;
-            
-            if (ParesTotales != partida.ParesTotales)
-                return false;
-            
-            if (Iniciada != partida.Iniciada)
-                return false;
-            
-            if (Terminada != partida.Terminada)
-                return false;
-            
-            return true;
         }
     }
 }
