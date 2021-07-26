@@ -1,6 +1,6 @@
 ﻿using System;
 using MatchingGame.Server.DAL;
-using MatchingGame.Server.Models;
+using MatchingGame.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -19,7 +19,6 @@ namespace MatchingGame.Server.DAL
         {
         }
         public virtual DbSet<Usuarios> Usuarios { get; set; }
-        public virtual DbSet<Log> Logs { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

@@ -1,10 +1,10 @@
+﻿using Blazored.LocalStorage;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
-using Blazored.LocalStorage;
 
-namespace MatchingGame.Client.Handlers
+namespace MatchingGame.Client.Handler
 {
     public class CustomAuthorizationHandler : DelegatingHandler
     {
@@ -16,10 +16,10 @@ namespace MatchingGame.Client.Handlers
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var jwtToken = await _localStorageService.GetItemAsync<string>("jwt_token");
-            
+
             if (jwtToken != null)
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", jwtToken);
-            
+
             return await base.SendAsync(request, cancellationToken);
         }
     }

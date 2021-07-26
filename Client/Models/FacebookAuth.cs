@@ -7,12 +7,17 @@ using System.Threading.Tasks;
 using MatchingGame.Shared;
 using MatchingGame.Shared.Models;
 
-namespace MatchingGame.ViewModels
+namespace MatchingGame.Client.Models
 {
-    public class FacebookAuthViewModel : IFacebookAuthViewModel
+    public interface IFacebookAuthViewModel
+    {
+        public Task<string> GetFacebookJWTAsync(string accessToken);
+    }
+
+    public class FacebookAuth : IFacebookAuthViewModel
     {
         private readonly HttpClient _httpClient;
-        public FacebookAuthViewModel(HttpClient httpClient)
+        public FacebookAuth(HttpClient httpClient)
         {
             this._httpClient = httpClient;
         }
