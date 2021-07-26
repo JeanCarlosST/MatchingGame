@@ -25,7 +25,7 @@ namespace MatchingGame.Server.DAL
         {
             if (!optionsBuilder.IsConfigured)
             {
-               // optionsBuilder.UseSqlite(@"Data Source=Data\MG222Prueba.db");
+                optionsBuilder.UseSqlite(@"Data Source=Data\FMPrueba.db");
             }
         }
     }
