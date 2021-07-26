@@ -3,27 +3,27 @@
 @using System.Timers;
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
+@inject IToastService Toast;
 
 <div class="container">
     <div class="row d-flex justify-content-center">
 
         @if (enPantallaInicial)
         {
-            <div class="col-mg-10 col-lg-6 col-xl-4">
+        <div class="col-mg-10 col-lg-6 col-xl-4">
 
-                <div class="card d-flex justify-content-center">
-                    <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(4))">
-                        Torneo 4 Participantes
-                    </button>
-                    <button type="button" class="btn btn-success mx-5 my-2" @onclick="@(() => BuscarTorneo(8))">
-                        Torneo 8 Participantes
-                    </button>
-                    <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(16))">
-                        Torneo 16 Participantes
-                    </button>
-                </div>
-
+            <div class="card d-flex justify-content-center">
+                <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(4))">
+                    Torneo 4 Participantes
+                </button>
+                <button type="button" class="btn btn-success mx-5 my-2" @onclick="@(() => BuscarTorneo(8))">
+                    Torneo 8 Participantes
+                </button>
+                <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(16))">
+                    Torneo 16 Participantes
+                </button>
             </div>
+        </div>
         }
         else if (buscandoParticipantes)
         {
@@ -64,7 +64,7 @@
                     {
                         <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
                             <button id="OctavosTab" type="button" class="nav-link" aria-selected="false"
-                                    data-toggle="tab" role="tab" data-target="#divOctavos">
+                                    data-bs-toggle="tab" role="tab" data-bs-target="#divOctavos">
                                 <span class="fw-bold fs-2 text-dark">Octavos</span>
                             </button>
                         </li>
@@ -73,20 +73,20 @@
                     {
                         <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
                             <button id="CuartosTab" type="button" class="nav-link" aria-selected="false"
-                                    data-toggle="tab" role="tab" data-target="#divCuartos">
+                                    data-bs-toggle="tab" role="tab" data-bs-target="#divCuartos">
                                 <span class="fw-bold fs-2 text-dark">Cuartos</span>
                             </button>
                         </li>
                     }
                     <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
                         <button id="SemifinalesTab" type="button" class="nav-link active" aria-selected="true"
-                                data-toggle="tab" role="tab" data-target="#divSemifinales">
+                                data-bs-toggle="tab" role="tab" data-bs-target="#divSemifinales">
                             <span class="fw-bold fs-2 text-dark">Semifinales</span>
                         </button>
                     </li>
                     <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
                         <button id="FinalTab" type="button" class="nav-link" aria-selected="false"
-                                data-toggle="tab" role="tab" data-target="#divFinal">
+                                data-bs-toggle="tab" role="tab" data-bs-target="#divFinal">
                             <span class="fw-bold fs-2 text-dark">Final</span>
                         </button>
                     </li>
@@ -97,7 +97,7 @@
 
                     @if (cantidadJugadores == 16)
                     {
-                        <div class="tab-pane fade show col-3 row d-flex px-4" id="divOctavos" role="tabpanel" aria-labelledby="OctavosTab">
+                        <div class="tab-pane fade col-3 row d-flex px-4" id="divOctavos" role="tabpanel" aria-labelledby="OctavosTab">
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 4))
                                 {
@@ -108,7 +108,7 @@
                     }
                     @if (cantidadJugadores >= 8)
                     {
-                        <div class="tab-pane fade show col-3 row d-flex px-4" id="divCuartos" role="tabpanel" aria-labelledby="CuartosTab">
+                        <div class="tab-pane fade col-3 row d-flex px-4" id="divCuartos" role="tabpanel" aria-labelledby="CuartosTab">
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 3))
                                 {
@@ -126,7 +126,7 @@
                         </div>
                     </div>
 
-                    <div class="tab-pane fade show col-3 row d-flex px-4" id="divFinal" role="tabpanel" aria-labelledby="FinalTab">
+                    <div class="tab-pane fade col-3 row d-flex px-4" id="divFinal" role="tabpanel" aria-labelledby="FinalTab">
                         <div class="col-12 align-items-center">
                             @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 1 ))
                             {
@@ -136,11 +136,39 @@
                     </div>
 
                 </div>
+
+                <div class="input-group d-flex justify-content-end">
+                    <button class="btn btn-warning bg-gradient btn-lg fw-bold" type="button" 
+                            data-bs-toggle="offcanvas" data-bs-target="#canvas" aria-controls="canvas">
+                        Ver progreso
+                    </button>
+                </div>
+
+                <div class="offcanvas offcanvas-bottom" tabindex="-1" id="canvas" >
+                    <div class="offcanvas-header">
+                        <span class="fs-4 fw-bold">Torneo</span>
+                        <button class="btn-close text-reset" type="button" data-bs-dismiss="offcanvas" />
+                    </div>
+                    <div class="offcanvas-body">
+                        @for(int i = Mensajes.Count - 1; i >= 0; i--)
+                        {
+                            string mensaje = Mensajes[i];
+
+                            <div class="card my-1 bg-light">
+                                <div class="card-body">
+                                    @mensaje
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
             </div>
         }
         else if (mostrarPartida)
         {
-            <PartidaTorneo Partida="PartidaActual" Yo="Yo" Hub="torneoHubConnection" VerTableroBtnHandler="AlterarVistas" @ref="PartidaTorneo" />
+            <PartidaTorneo Partida="PartidaActual" Yo="Yo" Hub="torneoHubConnection" 
+                           VerTableroBtnHandler="AlterarVistas" @ref="PartidaTorneo" 
+                           Toast="Toast"/>
         }
     </div>
 </div>
@@ -163,6 +191,8 @@
 
     private HubConnection torneoHubConnection;
 
+    private List<string> Mensajes = new List<string>();
+
     protected override void OnInitialized()
     {
         Random ran = new Random();
@@ -171,6 +201,11 @@
         jugador.Nickname = "Guest" + num;
         this.Yo = jugador;
         this.Jugadores = new List<Jugador>();
+    }
+
+    private void AgregarMensaje(string mensaje)
+    {
+        Mensajes.Add(mensaje);
     }
 
     protected override async Task OnInitializedAsync()
@@ -208,6 +243,8 @@
             }
         }
 
+        AgregarMensaje("Torneo iniciado");
+
         StateHasChanged();
     }
 
@@ -226,17 +263,16 @@
     async Task ActualizarPartidas(List<TorneoPartida> partidas)
     {
         Partidas = partidas;
+
         int ronda = Partidas.Max(p => p.Ronda);
+
         PartidaActual = Partidas.First(p =>
             (p.JugadorUno.ConnectionId == Yo.ConnectionId ||
              p.JugadorDos.ConnectionId == Yo.ConnectionId) &&
              p.Ronda == ronda);
 
-        Console.WriteLine(ronda);
-        Console.WriteLine(partidas.Count);
-        Console.WriteLine($"J1:{PartidaActual.JugadorUno.Nickname}, J2:{PartidaActual.JugadorDos.Nickname}. {PartidaActual.Terminada}");
-
         StateHasChanged();
+
     }
 
     async Task RecibirMovimiento(TorneoPartida partida)
@@ -260,18 +296,6 @@
 
         enPantallaInicial = false;
         buscandoParticipantes = true;
-    }
-
-    void EntrarEnPartida()
-    {
-        mostrarPartida = true;
-        mostrarTablero = false;
-    }
-
-    void MostrarTablero()
-    {
-        mostrarTablero = true;
-        mostrarPartida = false;
     }
 
     void AlterarVistas()

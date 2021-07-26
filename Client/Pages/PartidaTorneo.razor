@@ -147,6 +147,9 @@
     [Parameter]
     public EventCallback VerTableroBtnHandler { get; set; }
 
+    [Parameter]
+    public IToastService Toast { get; set; }
+
     const string CaracterVacio = "\u200D";
 
     public Jugador Oponente { get; set; }
@@ -205,7 +208,24 @@
         if (OponenteDetalle.ParesEncontrados == Partida.ParesTotales)
             mostrarResultadosOponente = true;
 
+        MostrarToastGanador();
+
         StateHasChanged();
+    }
+
+    void MostrarToastGanador()
+    {
+        if(Partida.Terminada)
+        {
+            if(YoDetalle.Tiempo < OponenteDetalle.Tiempo)
+            {
+                Toast.ShowSuccess("Ganaste la partida :)", "Resultado");
+            }
+            else
+            {
+                Toast.ShowError("Perdiste la partida :(", "Resultado");
+            }
+        }
     }
 
     bool EsPartidaJugada()
@@ -235,7 +255,7 @@
 
             YoDetalle.Puntos += CalcularPuntos();
             YoDetalle.ParesEncontrados++;
-            MarcarParejaEncontrada();
+            MarcarParejaEncontrada().Wait();
 
             if (YoDetalle.ParesEncontrados >= listaEmojis.Count / 2)
             {

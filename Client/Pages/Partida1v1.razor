@@ -14,7 +14,7 @@
 
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
-                    <label class="input-group-text">Modo</label>
+                    <label class="input-group-text bg-light">Modo</label>
                     <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Modo.Normal" selected>Normal</option>
                         <option value="@Modo.Contrarreloj">Contrarreloj</option>
@@ -27,7 +27,7 @@
 
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
-                    <label class="input-group-text">Dificultad</label>
+                    <label class="input-group-text bg-light">Dificultad</label>
                     <select class="form-select" @onchange="CambiarDificultad" disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Dificultad._4x4" selected>4 x 4</option>
                         <option value="@Dificultad._4x5">4 x 5</option>
@@ -52,7 +52,8 @@
                     }
                     else if (!buscandoOponente)
                     {
-                        <button type="button" class="btn btn-info d-flex justify-content-center" @onclick="PeticionCambiarPartida" disabled="@(jugadorDesconectado)">
+                        <button type="button" class="btn btn-info d-flex justify-content-center" 
+                                @onclick="PeticionCambiarPartida" disabled="@(jugadorDesconectado || partidaIniciada)">
                             @if(esperandoAceptacionCambio)
                             {
                             <span>Esperando respuesta...</span>
@@ -78,16 +79,16 @@
 
         <div class="row">
 
-            <div class="col-12 col-md-6 position-relative">
-                @if (Oponente != null && !partidaIniciada)
-                {
-                    <button type="button" class="btn btn-success btn-lg bg-gradient position-absolute top-50 start-50
-                                    translate-middle fs-2 px-4 rounded-pill border border-1 border-dark" style="z-index: 1;"
-                            @onclick="IniciarPartida" disabled="@(partidaIniciada || jugadorDesconectado || esperandoAceptacionCambio)">
-                        Listo
-                    </button>
-                }
-                <div class="row">
+            <div class="col-12 col-md-6">
+                <div class="row position-relative">
+                    @if (Oponente != null && !partidaIniciada)
+                    {
+                        <button type="button" class="btn btn-success btn-lg w-50 bg-gradient position-absolute top-50 start-50
+                                        translate-middle fs-2 px-4 rounded-pill border border-1 border-dark" style="z-index: 1;"
+                                @onclick="IniciarPartida" disabled="@(partidaIniciada || jugadorDesconectado || esperandoAceptacionCambio)">
+                            Listo
+                        </button>
+                    }
                     @for (int j = 0; j < 2; j++)
                     {
                         <div class="col-6 p-0">
@@ -271,9 +272,6 @@
 {
     const string CaracterVacio = "\u200D";
 
-    int filas = 4;
-    int cols = 4;
-
     bool partidaIniciada;
 
     Modo modo = Modo.Normal;
@@ -287,9 +285,6 @@
 
     string ultimoEmojiEncontrado = CaracterVacio;
     int ultimoAnimalIndice = -1;
-
-    int parejasEncontradas = 0;
-    int puntos = 0;
 
     int btnColValue = 6;
     string colValue = "col-xl-9 col-lg-12";
@@ -315,6 +310,7 @@
     bool modalAbandonar;
     bool modalCambiar;
     bool esperandoAceptacionCambio;
+    bool oponenteJugando;
     string peticionCambiar;
 
     protected override void OnInitialized()
@@ -346,6 +342,7 @@
         unoVsUnoHubConnection.On("JugadorDesconectado", JugadorDesconectado);
         unoVsUnoHubConnection.On<string>("RecibirPeticionCambio", RecibirPeticionCambio);
         unoVsUnoHubConnection.On<bool>("RespuestaPeticionCambio", RespuestaPeticionCambio);
+        unoVsUnoHubConnection.On("OponenteJugando", OponenteJugando);
 
         await unoVsUnoHubConnection.StartAsync();
     }
@@ -378,13 +375,36 @@
         }
 
         if (OponenteDetalle.ParesEncontrados == Partida.ParesTotales)
+        {
+            oponenteJugando = false;
             mostrarResultadosOponente = true;
+        }
+        Console.WriteLine($"{Partida.JugadorUnoDetalle.ParesEncontrados} {Partida.JugadorDosDetalle.ParesEncontrados}");
+
+        MostrarToastGanador();
 
         StateHasChanged();
     }
 
-    void IniciarPartida()
+    void MostrarToastGanador()
     {
+        if (Partida.Terminada)
+        {
+            if (YoDetalle.Tiempo < OponenteDetalle.Tiempo)
+            {
+                Toast.ShowSuccess("Ganaste la partida :)", "Resultado");
+            }
+            else
+            {
+                Toast.ShowError("Perdiste la partida :(", "Resultado");
+            }
+        }
+    }
+
+    async Task IniciarPartida()
+    {
+        await unoVsUnoHubConnection.SendAsync("JugadorIniciaPartida", Yo);
+
         partidaIniciada = true;
 
         if (partidaIniciada)
@@ -420,13 +440,11 @@
         int index = peticion.IndexOf("_");
         string modoStr = peticion.Substring(0, index);
         string dificultadStr = peticion.Substring(index);
-        Console.WriteLine($"Modo {modoStr} Dificultad {dificultadStr}");
 
         peticionModo = (Modo)Enum.Parse(typeof(Modo), modoStr);
         peticionDificultad = (Dificultad)Enum.Parse(typeof(Dificultad), dificultadStr);
-        Console.WriteLine("Mao");
 
-        peticionCambiar = $"{Oponente.Nickname} quiere cambiar la partida a modo {modoStr} en dificultad {dificultadStr}. ¿Aceptas?";
+        peticionCambiar = $"{Oponente.Nickname} quiere cambiar la partida a modo {modoStr} en dificultad {dificultadStr[1..]}. ¿Aceptas?";
         modalCambiar = true;
         StateHasChanged();
     }
@@ -434,19 +452,24 @@
     void RespuestaPeticionCambio(bool respuesta)
     {
         esperandoAceptacionCambio = false;
-        
+
         if (respuesta)
         {
             CambiarModo(peticionModo);
             CambiarDificultad(peticionDificultad);
-            Toast.ShowSuccess("El modo y dificultad fueron cambiados");
+            Toast.ShowSuccess("El modo y dificultad fueron cambiados", "Respuesta de cambio");
         }
         else
         {
-            Toast.ShowError("Cambio no aceptado");
+            Toast.ShowError("Cambio no aceptado", "Respuesta de cambio");
         }
 
         StateHasChanged();
+    }
+
+    void OponenteJugando()
+    {
+        oponenteJugando = true;
     }
 
     async Task BuscarOponente()
@@ -466,8 +489,20 @@
 
     async Task PeticionCambiarPartida()
     {
+        if(oponenteJugando)
+        {
+            Toast.ShowError("Tu oponente está jugando. Espera que termine", "Petición inválida");
+            return;
+        }
+
+        if(OponenteDetalle.Puntos != 0 && !partidaIniciada)
+        {
+            Toast.ShowError("Tu oponente ya ha jugado, juega para poder cambiar", "Petición inválida");
+            return;
+        }
+
         if(!esperandoAceptacionCambio && (peticionModo != modo || peticionDificultad != dificultad))
-        {   
+        {
             esperandoAceptacionCambio = true;
 
             string peticionString = "partida" + peticionModo.ToString() + peticionDificultad.ToString();
@@ -478,9 +513,9 @@
         }
     }
 
-    void MarcarParejaEncontrada()
+    async Task MarcarParejaEncontrada()
     {
-        unoVsUnoHubConnection.SendAsync("RecibirParejaEncontrada", Partida, Yo, YoDetalle);
+        await unoVsUnoHubConnection.SendAsync("RecibirParejaEncontrada", Partida, Yo, YoDetalle);
     }
 
     void GenerarTablero()
@@ -498,8 +533,6 @@
         else
             decimasDeSegundos = 0;
 
-        parejasEncontradas = 0;
-        puntos = 0;
         ultimoEmojiEncontrado = CaracterVacio;
         ultimoAnimalIndice = -1;
     }
@@ -585,72 +618,54 @@
         switch (dificultad)
         {
             case Dificultad._4x4:
-                filas = 4;
-                cols = 4;
                 btnColValue = 6;
                 colValue = "col-xl-9 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
             case Dificultad._4x5:
-                filas = 5;
-                cols = 4;
                 btnColValue = 6;
                 colValue = "col-xl-9 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
             case Dificultad._4x6:
-                filas = 4;
-                cols = 6;
                 btnColValue = 4;
                 colValue = "col-xl-10 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
             case Dificultad._4x7:
-                filas = 7;
-                cols = 4;
                 btnColValue = 6;
                 colValue = "col-xl-9 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
             case Dificultad._4x8:
-                filas = 4;
-                cols = 8;
                 btnColValue = 3;
                 colValue = "col-12";
                 containerPaddingValue = "px-4";
                 break;
 
             case Dificultad._6x6:
-                filas = 6;
-                cols = 6;
                 btnColValue = 4;
                 colValue = "col-xl-10 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
             case Dificultad._6x7:
-                filas = 7;
-                cols = 6;
                 btnColValue = 4;
                 colValue = "col-xl-10 col-lg-12";
                 containerPaddingValue = "px-4";
                 break;
 
             case Dificultad._6x8:
-                filas = 6;
-                cols = 8;
                 btnColValue = 3;
                 colValue = "col-12";
                 containerPaddingValue = "px-2";
                 break;
 
             case Dificultad._8x8:
-                filas = 8;
-                cols = 8;
                 btnColValue = 3;
                 colValue = "col-12";
                 containerPaddingValue = "px-2";
@@ -661,7 +676,7 @@
         SetearTiempo();
     }
 
-    void SeleccionarCasilla(string animal, int index)
+    async Task SeleccionarCasilla(string animal, int index)
     {
         if (ultimoEmojiEncontrado == CaracterVacio)
         {
@@ -676,13 +691,12 @@
                 .Select(a => a.Replace(animal, CaracterVacio))
                 .ToList();
 
-            puntos += CalcularPuntos();
-            parejasEncontradas++;
-            MarcarParejaEncontrada();
+            YoDetalle.Puntos += CalcularPuntos();
+            YoDetalle.ParesEncontrados++;
+            await MarcarParejaEncontrada();
 
-            if (parejasEncontradas >= listaEmojis.Count / 2)
+            if (YoDetalle.ParesEncontrados >= listaEmojis.Count / 2)
             {
-                unoVsUnoHubConnection.SendAsync("PerderPartida", Partida, Yo).Wait();
                 TerminarPartida();
                 GenerarTablero();
             }
@@ -726,13 +740,15 @@
         {
             if (modo != Modo.Contrarreloj)
                 decimasDeSegundos++;
+
             else
             {
                 decimasDeSegundos--;
                 if (decimasDeSegundos <= 0)
                 {
-                    unoVsUnoHubConnection.SendAsync("PerderPartida", Partida, Yo).Wait();
                     TerminarPartida();
+                    Console.WriteLine("Terminado");
+                    unoVsUnoHubConnection.SendAsync("PerderPartida", Partida, Yo).Wait();
                 }
             }
 
