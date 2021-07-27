@@ -1,10 +1,9 @@
 ﻿@page "/login"
-@using MatchingGame.ViewModels
-@using MatchingGame.Shared
-@inject ILoginViewModel _loginViewModel
-@inject NavigationManager _navigationManager
-@inject ILocalStorageService _localStorageService
-@inject IJSRuntime _jsRuntime
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IToastService Toast
+
 <div class="container">
 
     <div class="row d-flex justify-content-center">
@@ -29,20 +28,34 @@
                     <form>
                         <div class="input-group mb-3">
                             <span class="input-group-text"><i class="oi oi-person"></i></span>
-                            <input type="text" class="form-control m-0" placeholder="Usuario o Email" @bind="_loginViewModel.Email">
+                            <input type="text" class="form-control m-0" placeholder="Usuario o Email" @bind="usuarioLogin.Email">
                         </div>
 
                         <div class="input-group mb-2">
                             <span class="input-group-text"><i class="oi oi-key"></i></span>
-                            <input type="password" class="form-control" placeholder="Contraseña" @bind="_loginViewModel.Clave">
+                            <input type="password" class="form-control" placeholder="Contraseña" @bind="usuarioLogin.Clave">
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" @bind="_loginViewModel.Recuerdame">
+                            <input class="form-check-input" type="checkbox" @bind="usuarioLogin.Recuerdame">
                             <label class="form-check-label" for="customControlInline" >Recordarme</label>
                         </div>
                         <div class="d-flex flex-column mt-3">
-                            <button type="button" class="btn btn-success" @onclick="AuthenticateJWT">Iniciar Sesión</button>
+                            <button type="button" class="btn btn-success d-flex justify-content-center" 
+                                    @onclick="ValidarLogin">
+                                
+                                @if(iniciandoSesion)
+                                {
+                                    <span>Iniciando sesión</span>
+                                    <div class="ml-2">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span>Iniciar sesión</span>
+                                }
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -56,71 +69,32 @@
 </div>
 
 @code {
-    [CascadingParameter]
-    public Task<AuthenticationState> authenticationState { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    public LoginModel usuarioLogin { get; set; }
+    public bool iniciandoSesion;
+
+    protected override void OnInitialized()
     {
-        var authState = await authenticationState;
-        var user = authState.User;
-        if (user.Identity.IsAuthenticated)
+        usuarioLogin = new LoginModel();
+    }
+
+    public async Task ValidarLogin()
+    {
+        iniciandoSesion = true;
+        var usuarioDevuelto = await UserService.LoginAsync(usuarioLogin);
+        if(!String.IsNullOrEmpty(usuarioLogin.Email))
         {
-            _navigationManager.NavigateTo("/nosotros", true);
-        }
-    }
-
-    public async Task LoginUser()
-    {
-        await _loginViewModel.LoginUser();
-        _navigationManager.NavigateTo("/", true);
-    }
-
-    private void TwitterSignIn()
-    {
-        _navigationManager.NavigateTo($"user/TwitterSignIn?isPersistent={_loginViewModel.Recuerdame}", true);
-    }
-
-    private void FacebookSignIn()
-    {
-        _navigationManager.NavigateTo($"user/FacebookSignIn?isPersistent={_loginViewModel.Recuerdame}", true);
-    }
-
-    private void GoogleSignIn()
-    {
-        _navigationManager.NavigateTo($"user/GoogleSignIn?isPersistent={_loginViewModel.Recuerdame}", true);
-    }
-
-    public async Task AuthenticateJWT()
-    {
-        AuthenticationResponse authenticationResponse = await _loginViewModel.AuthenticateJWT();
-        if (authenticationResponse.Token != string.Empty)
-        {
-            await _localStorageService.SetItemAsync("jwt_token", authenticationResponse.Token);
-            _navigationManager.NavigateTo("/", true);
+            await ((CustomAuthenticationStateProvider)AuthStateProvider).MarcarUsuarioLogeado(usuarioDevuelto);
+            await Task.Delay(1000);
+            iniciandoSesion = false;
+            NavigationManager.NavigateTo("/");
+            Toast.ShowSuccess("Logeado correctamente");
         }
         else
         {
-            Console.WriteLine("Error al Autenticar JWT");
+            Toast.ShowError("Email o contraseña incorrectos");
         }
-    }
 
-    public async Task FacebookJWT()
-    {
-        var appId = await _loginViewModel.GetFacebookAppIDAsync();
-
-        var accessTokenRequest = $"https://www.facebook.com/v11.0/dialog/oauth";
-        accessTokenRequest += "?response_type=token";
-        accessTokenRequest += $"&client_id={appId}";
-        accessTokenRequest += "&redirect_uri=https://localhost:5001/FacebookAuth";
-
-        _navigationManager.NavigateTo(accessTokenRequest, true);
-    }
-
-    public async Task TwitterJWT()
-    {
-        var twitterRequestTokenResponse = await _loginViewModel.GetTwitterOAuthTokenAsync();
-        await _localStorageService.SetItemAsync("twitterRequestTokenResponse", twitterRequestTokenResponse);
-
-        _navigationManager.NavigateTo("https://api.twitter.com/oauth/authorize?oauth_token=" + twitterRequestTokenResponse.OAuthToken);
+        iniciandoSesion = false;
     }
 }

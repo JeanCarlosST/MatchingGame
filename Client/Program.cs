@@ -1,16 +1,15 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MatchingGame.ViewModels;
 using Microsoft.AspNetCore.Components.Authorization;
-using MatchingGame.Client.Logging;
-//using Blazored.Toast;
 using Blazored.LocalStorage;
-using MatchingGame.Client.Handlers;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System;
 using Blazored.Toast;
+using MatchingGame.Client.Models;
+using MatchingGame.Client.Handler;
+using MatchingGame.Client.Services;
 
 namespace MatchingGame.Client
 {
@@ -26,14 +25,11 @@ namespace MatchingGame.Client
             builder.Services.AddAuthorizationCore();
 
             builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-
             AddHttpClients(builder);
 
             builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
             builder.Services.AddBlazoredLocalStorage();
             builder.Services.AddBlazoredToast();
-
-            builder.Services.AddTransient<CustomAuthorizationHandler>();
 
             builder.Services.AddLogging(logging =>
             {
@@ -41,7 +37,6 @@ namespace MatchingGame.Client
                 var authenticationStateProvider = builder.Services.BuildServiceProvider().GetRequiredService<AuthenticationStateProvider>();
                 logging.SetMinimumLevel(LogLevel.Error);
                 //logging.ClearProviders();
-                logging.AddProvider(new ApplicationLoggerProvider(httpClient, authenticationStateProvider));
             });
 
 
@@ -53,24 +48,27 @@ namespace MatchingGame.Client
             //transactional named http clients
             /* builder.Services.AddHttpClient<IProfileViewModel, ProfileViewModel>
                  ("ProfileViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
-                 .AddHttpMessageHandler<CustomAuthorizationHandler>();
-
-             builder.Services.AddHttpClient<ISettingsViewModel, SettingsViewModel>
-                 ("SettingsViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
                  .AddHttpMessageHandler<CustomAuthorizationHandler>();*/
 
+            builder.Services.AddHttpClient<IUserService, UserService>
+                 ("UserService", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+
+            //builder.Services.AddHttpClient<ISettings, Settings>
+            //    ("SettingsViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+            //    .AddHttpMessageHandler<CustomAuthorizationHandler>();
+
             //authentication http clients
-            builder.Services.AddHttpClient<ILoginViewModel, LoginViewModel>
-                ("LoginViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+            //builder.Services.AddHttpClient<ILogin, Login>
+            //    ("LoginViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
-            builder.Services.AddHttpClient<IRegisterViewModel, RegisterViewModel>
-                ("RegisterViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+            //builder.Services.AddHttpClient<IRegister, Register>
+            //    ("RegisterViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
-            builder.Services.AddHttpClient<IFacebookAuthViewModel, FacebookAuthViewModel>
-                ("FacebookAuthViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+            //builder.Services.AddHttpClient<IFacebookAuthViewModel, FacebookAuth>
+            //    ("FacebookAuthViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
-            builder.Services.AddHttpClient<ITwitterAuthViewModel, TwitterAuthViewModel>
-               ("TwitterAuthViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+            //builder.Services.AddHttpClient<ITwitter, Twitter>
+            //   ("TwitterAuthViewModelClient", cliente => cliente.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
         }
     }
 }

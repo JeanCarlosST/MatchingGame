@@ -2,45 +2,75 @@ using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using MatchingGame.Shared.Models;
-using MatchingGame.ViewModels;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using MatchingGame.Client.Services;
 
 namespace MatchingGame.Client
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly ILoginViewModel _loginViewModel;
-        private readonly ILocalStorageService _localStorageService;
+        private readonly IUserService userService;
+        private readonly ILocalStorageService localStorageService;
 
-        public CustomAuthenticationStateProvider(ILoginViewModel loginViewModel, ILocalStorageService localStorageService)
+        public CustomAuthenticationStateProvider(IUserService userService, ILocalStorageService localStorageService)
         {
-            _loginViewModel = loginViewModel;
-            _localStorageService = localStorageService;
+            this.userService = userService;
+            this.localStorageService = localStorageService;
         }
 
         public async override Task<AuthenticationState> GetAuthenticationStateAsync()
         {
-            Usuarios currentUser = await GetUserByJWTAsync();        
-         
-            if (currentUser != null && currentUser.Email != null)
+            var token = await localStorageService.GetItemAsync<string>("jwt_token");
+
+            ClaimsIdentity identity = new ClaimsIdentity();
+
+            if (token != null && !String.IsNullOrEmpty(token))
             {
-                var claimEmailAddress = new Claim(ClaimTypes.Name, currentUser.Email);
-                var claimNameIdentifier = new Claim(ClaimTypes.NameIdentifier, Convert.ToString(currentUser.UsuarioId));
-                var claimsIdentity = new ClaimsIdentity(new[] { claimEmailAddress, claimNameIdentifier }, "serverAuth");
-                var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-                return new AuthenticationState(claimsPrincipal);
+                Usuarios usuarioActual = await userService.ObtenerUsuarioPorJWT(token);
+                identity = GetClaimsIdentity(usuarioActual);
             }
-            else
-                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            return await Task.FromResult(new AuthenticationState(claimsPrincipal));
         }
 
-        public async Task<Usuarios> GetUserByJWTAsync()
+        private ClaimsIdentity GetClaimsIdentity(Usuarios usuario)
         {
-            var jwtToken = await _localStorageService.GetItemAsStringAsync("jwt_token");
-            if(jwtToken == null) return null;
+            var claimsIdentity = new ClaimsIdentity();
 
-            return await _loginViewModel.GetUserByJWTAsync(jwtToken);
+            if(usuario.Email != null)
+            {
+                claimsIdentity = new ClaimsIdentity(new []
+                {
+                    new Claim(ClaimTypes.NameIdentifier, Convert.ToString(usuario.UsuarioId)),
+                    new Claim(ClaimTypes.Name, usuario.NickName),
+                    new Claim(ClaimTypes.Email, usuario.Email)
+                }, "serverAuth");
+            }
+
+            return claimsIdentity;
+        }
+
+        public async Task MarcarUsuarioLogeado(Usuarios usuario)
+        {
+            await localStorageService.SetItemAsync("jwt_token", usuario.Token);
+
+            var identity = GetClaimsIdentity(usuario);
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
+        }
+
+        public async Task MarcarUsuarioNoLogeado()
+        {
+            await localStorageService.RemoveItemAsync("jwt_token");
+
+            var identity = new ClaimsIdentity();
+            var claimsPrincipal = new ClaimsPrincipal(identity);
+
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
         }
     }
 }

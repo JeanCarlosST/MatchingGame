@@ -1,6 +1,7 @@
 using MatchingGame.Server.DAL;
 using MatchingGame.Server.Helpers;
 using MatchingGame.Server.Hubs;
+using MatchingGame.Server.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -41,6 +42,8 @@ namespace MatchingGame.Server
                     new[] { "application/octet-stream" });
             });
 
+            services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+
             services.AddAuthentication(options =>
             {
                 //options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -55,7 +58,7 @@ namespace MatchingGame.Server
                 jwtBearerOptions.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["JWTSettings:SecretKey"])),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(Configuration["AppSettings:SecretKey"])),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ClockSkew = TimeSpan.Zero
@@ -84,6 +87,9 @@ namespace MatchingGame.Server
 
             services.AddHttpContextAccessor();
             services.AddHttpClient();
+
+            services.AddScoped<IJwtUtils, JwtUtils>();
+            services.AddScoped<IUserService, UserService>();
 
             services.AddSingleton<GameManager>();
         }

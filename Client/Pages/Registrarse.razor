@@ -1,7 +1,9 @@
 ﻿@page "/register"
-@inject IRegisterViewModel _registerViewModel
-@inject NavigationManager _navigationManager
-@using MatchingGame.ViewModels
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IToastService Toast
+
 <div class="container">
 
     <div class="row d-flex justify-content-center">
@@ -24,34 +26,34 @@
                     <form>
                         <div class="input-group mb-3 ">
                             <span class="input-group-text"><i class="oi oi-person"></i></span>
-                            <input type="text" class="form-control m-0" placeholder="Nombres" @bind="_registerViewModel.Nombres">
+                            <input type="text" class="form-control m-0" placeholder="Nombres" @bind="usuarioRegistro.Nombres">
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text"><i class="oi oi-envelope-closed"></i></span>
-                            <input type="text" class="form-control m-0" placeholder="Correo Electrónico" @bind="_registerViewModel.Email">
+                            <input type="text" class="form-control m-0" placeholder="Correo Electrónico" @bind="usuarioRegistro.Email">
                         </div>
                         <div class="input-group mb-3">
                             <span class="input-group-text"><i class="oi oi-shield"></i></span>
-                            <input type="text" class="form-control m-0" placeholder="Nombre de usuario" @bind="_registerViewModel.NickName">
+                            <input type="text" class="form-control m-0" placeholder="Nombre de usuario" @bind="usuarioRegistro.NickName">
                         </div>
 
                         <div class="row mb-3">
                             <div class="col-sm-6 mb-3">
                                 <div class=" input-group ">
                                     <span class="input-group-text"><i class="oi oi-key"></i></span>
-                                    <input type="password" class="form-control" placeholder="Contraseña" @bind="_registerViewModel.Clave">
+                                    <input type="password" class="form-control" placeholder="Contraseña" @bind="usuarioRegistro.Clave">
                                 </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="input-group ">
                                     <span class="input-group-text"><i class="oi oi-key"></i></span>
-                                    <input type="password" class="form-control" placeholder="Confirmar contraseña" @bind="_registerViewModel.ConfirmarClave">
+                                    <input type="password" class="form-control" placeholder="Confirmar contraseña" @bind="usuarioRegistro.ConfirmarClave">
                                 </div>
                             </div>
                         </div>
 
                         <div class="d-flex flex-column">
-                            <button type="button" class="btn btn-success" @onclick="RegisterUser">Registrarse</button>
+                            <button type="button" class="btn btn-success" @onclick="RegistrarUsuario">Registrarse</button>
                         </div>
                     </form>
                 </div>
@@ -64,10 +66,26 @@
     </div>
 </div>
 @code {
-    public async Task RegisterUser()
+    public RegisterModel usuarioRegistro { get; set; }
+
+    protected override void OnInitialized()
     {
-        await _registerViewModel.RegisterUser();
-        //_toastService.ShowInfo("Your user has been created in the system. Please login with your credentials");
-        _navigationManager.NavigateTo("/");
+        usuarioRegistro = new RegisterModel();
+    }
+
+    public async Task RegistrarUsuario()
+    {
+
+        bool registroResultado = await UserService.RegisterAsync(usuarioRegistro);
+
+        if(registroResultado)
+        {
+            Toast.ShowSuccess("Registrado correctamente");
+            NavigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            Toast.ShowError("No se pudo registrar");
+        }
     }
 }
