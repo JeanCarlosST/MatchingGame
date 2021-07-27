@@ -1,48 +1,31 @@
 ﻿@page "/userprofile"
 @page "/userprofile/{UsuarioId:int}"
 
+
 <div class="container">
 
     <div class="row d-flex justify-content-center">
 
-        <div class="col-lg-6 mt-md-4 ">
-            <div class="card shadow-lg bg-info bg-gradient border-1 border-dark ">
+        <div class="row col-lg-9 ">
+            <div class="row card shadow-lg bg-info bg-gradient border-1 border-dark ">
                 <div class="card-header border-1 bg-transparent">
                     <div class="d-flex flex-column text-center my-2">
                         <span class="fs-4 mt-2">
-                            <b>Perfil</b>
+                            <b>
+                                Perfil de @Usuario.NickName <span class="oi oi-plus" />
+                            </b>
                         </span>
                     </div>
                 </div>
-
-                <div class="d-flex justify-content-center m-2 ">
-                    <EditForm Model="Usuario" OnValidSubmit="Guardar">
-                        <DataAnnotationsValidator />
+                <div class="row">
+                    <div class="col d-flex justify-content-center m-2 align-items-center">
                         <form>
-                            <div class="input-group mb-3 ">
-                                <span class="input-group-text"><i class="oi oi-person"></i></span>
-                                <InputText @bind-Value="Usuario.Nombres" class="form-control m-0" placeholder="Nombres" disabled />
-                                @if (!esAmigo())
-                                {
-                                    <button type="button" class="btn btn-primary small">
-                                        +
-                                    </button>
-                                }
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="oi oi-envelope-closed"></i></span>
-                                <InputText @bind-Value="Usuario.Email" class="form-control m-0" placeholder="Correo Electrónico" disabled />
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="oi oi-shield"></i></span>
-                                <InputText @bind-Value="Usuario.NickName" class="form-control m-0" placeholder="Nombre de usuario" disabled />
-                            </div>
-                            <div class="row mb-3">
+                            <div class="row mb-3 justify-content-center">
                                 <div class="col">
                                     <span class="input-group-text justify-content-center">
                                         Victorias 1vs1:
                                     </span>
-                                    <span class="input-group-text justify-content-center">
+                                    <span class="input-group-text justify-content-center bg-light">
                                         @Usuario.Victorias1v1
                                     </span>
                                 </div>
@@ -51,13 +34,69 @@
                                     <span class="input-group-text justify-content-center">
                                         Victorias Torneos:
                                     </span>
+                                    <span class="input-group-text justify-content-center bg-light">
+                                        @Usuario.VictoriasTorneos
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
                                     <span class="input-group-text justify-content-center">
+                                        1vs1 Jugados:
+                                    </span>
+                                    <span class="input-group-text justify-content-center bg-light">
+                                        @Usuario.Victorias1v1
+                                    </span>
+                                </div>
+
+                                <div class="col ">
+                                    <span class="input-group-text justify-content-center">
+                                        Torneos Jugados:
+                                    </span>
+                                    <span class="input-group-text justify-content-center bg-light">
                                         @Usuario.VictoriasTorneos
                                     </span>
                                 </div>
                             </div>
                         </form>
-                    </EditForm>
+                    </div>
+                    <div class="col bg-info ">
+                            <div class="card-header">
+                                <h4>Mejores Tiempos</h4>
+                            </div>
+                            <table class="table table-striped ">
+                                <thead>
+                                    <tr>
+                                        <th> </th>
+                                        <th>4x4</th>
+                                        <th>4x5</th>
+                                        <th>4x6</th>
+                                        <th>4x7</th>
+                                        <th>4x8</th>
+                                        <th>6x6</th>
+                                        <th>6x7</th>
+                                        <th>8x8</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-transparent">
+                                    <tr>
+                                        <td>Normal</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Una Vida</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cambiante</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Memoria</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Contrareloj</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                    </div>
                 </div>
             </div>
         </div>

@@ -4,41 +4,26 @@
 
     <div class="row d-flex justify-content-center">
 
-        <div class="col-lg-6 mt-md-4 ">
-            <div class="card shadow-lg bg-info bg-gradient border-1 border-dark ">
+        <div class="row col-lg-9 ">
+            <div class="row card shadow-lg bg-info bg-gradient border-1 border-dark ">
                 <div class="card-header border-1 bg-transparent">
                     <div class="d-flex flex-column text-center my-2">
                         <span class="fs-4 mt-2">
-                            <b>Mi Perfil</b>
+                            <b>
+                                Perfil de @Usuario.NickName <span class="oi oi-cog" />
+                            </b>
                         </span>
                     </div>
                 </div>
-
-                <div class="d-flex justify-content-center m-2 ">
-                    <EditForm Model="Usuario" OnValidSubmit="Guardar">
-                        <DataAnnotationsValidator />
+                <div class="row">
+                    <div class="col d-flex justify-content-center m-2 align-items-center">
                         <form>
-                            <div class="input-group mb-3 ">
-                                <span class="input-group-text"><i class="oi oi-person"></i></span>
-                                <InputText @bind-Value="Usuario.Nombres" class="form-control m-0" placeholder="Nombres" disabled="@EditName" />
-                                <button @onclick="()=>Editar(ref EditName, Usuario.Nombres)" type="button" class="input-group-text"><i class="oi oi-pencil"></i></button>
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="oi oi-envelope-closed"></i></span>
-                                <InputText @bind-Value="Usuario.Email" class="form-control m-0" placeholder="Correo Electrónico" disabled="@EditEmail" />
-                                <button @onclick="()=>Editar(ref EditEmail, Usuario.Email)" type="button" class="input-group-text"><i class="oi oi-pencil"></i></button>
-                            </div>
-                            <div class="input-group mb-3">
-                                <span class="input-group-text"><i class="oi oi-shield"></i></span>
-                                <InputText @bind-Value="Usuario.NickName" class="form-control m-0" placeholder="Nombre de usuario" disabled="@EditNick" />
-                                <button @onclick="()=>Editar(ref EditNick, Usuario.NickName)" type="button" class="input-group-text"><i class="oi oi-pencil"></i></button>
-                            </div>
-                            <div class="row mb-3">
+                            <div class="row mb-3 justify-content-center">
                                 <div class="col">
                                     <span class="input-group-text justify-content-center">
                                         Victorias 1vs1:
                                     </span>
-                                    <span class="input-group-text justify-content-center">
+                                    <span class="input-group-text justify-content-center bg-light">
                                         @Usuario.Victorias1v1
                                     </span>
                                 </div>
@@ -47,25 +32,128 @@
                                     <span class="input-group-text justify-content-center">
                                         Victorias Torneos:
                                     </span>
-                                    <span class="input-group-text justify-content-center">
+                                    <span class="input-group-text justify-content-center bg-light">
                                         @Usuario.VictoriasTorneos
                                     </span>
                                 </div>
                             </div>
-                            <div class="bg-body ">
-                                <div class="btn-group shadow-sm" role="group" aria-label="Basic example">
-                                    <button type="button" class="btn btn-light" @onclick="()=>Amigos=1">Mis Amigos</button>
-                                    <button type="button" class="btn btn-light" @onclick="()=>Amigos=2">Solicitudes de Amistad</button>
+                            <div class="row">
+                                <div class="col">
+                                    <span class="input-group-text justify-content-center">
+                                        1vs1 Jugados:
+                                    </span>
+                                    <span class="input-group-text justify-content-center bg-light">
+                                        @Usuario.Victorias1v1
+                                    </span>
                                 </div>
-                                @if (Amigos == 1)
-                                {
-                                    <div class="card-header border-1 bg-transparent">
-                                        <div class="d-flex flex-column text-center">
-                                            <span class="fs-4 mt-2">
-                                                <b>Mis Amigos</b>
-                                            </span>
-                                        </div>
-                                    </div>
+
+                                <div class="col ">
+                                    <span class="input-group-text justify-content-center">
+                                        Torneos Jugados:
+                                    </span>
+                                    <span class="input-group-text justify-content-center bg-light">
+                                        @Usuario.VictoriasTorneos
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col justify-content-center d-flex mt-1 ">
+                                <button type="button" class="input-group-text btn btn-@clase " @onclick="()=> { Estadisticas = !Estadisticas;  }">
+                                    @if (Estadisticas)
+                                    {<span>Amigos</span> }
+                                    else
+                                    { <span>Estadisticas</span>}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col bg-info ">
+                        @if (Estadisticas)
+                        {
+                            <div class="card-header">
+                                <h4>Mejores Tiempos</h4>
+                            </div>
+                            <table class="table table-striped ">
+                                <thead>
+                                    <tr>
+                                        <th> </th>
+                                        <th>4x4</th>
+                                        <th>4x5</th>
+                                        <th>4x6</th>
+                                        <th>4x7</th>
+                                        <th>4x8</th>
+                                        <th>6x6</th>
+                                        <th>6x7</th>
+                                        <th>8x8</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-transparent">
+                                    <tr>
+                                        <td>Normal</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Una Vida</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cambiante</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Memoria</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Contrareloj</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="btn-group shadow-sm" role="group">
+                                <ul class="nav nav-pills d-flex justify-content-center" role="tablist">
+                                    <li class="nav-item bg-info" role="presentation">
+                                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#amigos"
+                                                type="button" role="tab" aria-controls="amigos" aria-selected="true">
+                                            Amigos
+                                        </button>
+                                    </li>
+                                    <li class="nav-item bg-info" role="presentation">
+                                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#solicitudes"
+                                                type="button" role="tab" aria-controls="solicitudes" aria-selected="false">
+                                            Solicitudes de Amistad
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="tab-content d-flex justify-content-center" id="myTabContent">
+                                <div class="tab-pane fade show active" id="amigos" role="tabpanel" aria-labelledby="amigos-tab">
+                                    <table class="table table-striped ">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Usuario</th>
+                                                <th>Victorias 1vs1</th>
+                                                <th>Victorias Torneos</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-transparent">
+                                            @foreach (tempUser user in Usuario.ListaAmigos)
+                                            {
+                                                <tr>
+                                                    <td><i class="oi oi-person"></i></td>
+                                                    <td><a href="/userprofile/@user.id">@user.NickName</a></td>
+                                                    <td>@user.Victorias1v1</td>
+                                                    <td>@user.VictoriasTorneos</td>
+                                                    <td class="text-center align-baseline">
+                                                        <button type="button" class=" bg-danger small">
+                                                            x
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="tab-pane fade" id="solicitudes" role="tabpanel" aria-labelledby="solicitudes-tab">
 
                                     <table class="table table-striped ">
                                         <thead>
@@ -75,47 +163,10 @@
                                                 <th>Victorias 1vs1</th>
                                                 <th>Victorias Torneos</th>
                                                 <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody style="background-color: white;">
-                                            @foreach (tempUser user in Usuario.ListaAmigos)
-                                            {
-                                                <tr>
-                                                    <td><i class="oi oi-person"></i></td>
-                                                    <td><a href="/userprofile/@user.id">@user.NickName</a></td>
-                                                    <td>@user.Victorias1v1</td>
-                                                    <td>@user.VictoriasTorneos</td>
-                                                    <td class="text-center align-baseline">
-                                                        <button type="button" class="btn btn-danger  small">
-                                                            x
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                }
-                                else if (Amigos == 2)
-                                {
-                                    <div class="card-header border-1 bg-transparent">
-                                        <div class="d-flex flex-column text-center">
-                                            <span class="fs-4 mt-2">
-                                                <b>Solicitudes de Amistad</b>
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <table class="table table-striped ">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Usuario</th>
-                                                <th>Victorias 1vs1</th>
-                                                <th>Victorias Torneos</th>
-                                                <th></th>
                                                 <th></th>
                                             </tr>
                                         </thead>
-                                        <tbody style="background-color: white;">
+                                        <tbody class="bg-info">
                                             @foreach (tempUser user in Usuario.Solicitudes)
                                             {
                                                 <tr>
@@ -125,12 +176,12 @@
                                                     <td>@user.VictoriasTorneos</td>
 
                                                     <td class="text-center align-baseline">
-                                                        <button type="button" class="btn btn-primary small">
+                                                        <button type="button" class=" btn-primary small">
                                                             +
                                                         </button>
                                                     </td>
                                                     <td class="text-center align-baseline">
-                                                        <button type="button" class="btn btn-danger  small">
+                                                        <button type="button" class=" bg-danger small">
                                                             x
                                                         </button>
                                                     </td>
@@ -138,10 +189,10 @@
                                             }
                                         </tbody>
                                     </table>
-                                }
+                                </div>
                             </div>
-                        </form>
-                    </EditForm>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -162,11 +213,8 @@
     }
     public static List<tempUser> Users;
     public tempUser Usuario = new tempUser();
-
-    private bool EditNick = true;
-    private bool EditName = true;
-    private bool EditEmail = true;
-    public short Amigos = 0;
+    bool Estadisticas = false;
+    string clase => Estadisticas ? "success" : "warning";
 
     protected override void OnInitialized()
     {
@@ -233,12 +281,7 @@
         Users[0].Solicitudes.Add(Users[4]);
     }
 
-    private void Editar(ref bool Edit, string Editable)
-    {
-        Edit = !Edit;
-        if (Edit)
-            Guardar();
-    }
+
     private void Guardar()
     {
         ///Hazlo que guarde papá
