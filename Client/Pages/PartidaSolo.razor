@@ -11,7 +11,7 @@
                         <option value="@Modo.Normal" selected>Normal</option>
                         <option value="@Modo.Contrarreloj">Contrarreloj</option>
                         <option value="@Modo.UnaVida">Una vida</option>
-                        <option value="@Modo.Memoria" disabled>Memoria (Proximamente)</option>
+                        <option value="@Modo.Memoria">Memoria</option>
                         <option value="@Modo.Cambiante">Cambiante</option>
                     </select>
                 </div>
@@ -61,9 +61,9 @@
                                     @if (index == ultimoAnimalIndice)
                                         btnClass = "btn-dark";
 
-                                    <button type="button" class="btn @btnClass col-@btnColValue p-1" disabled="@(!partidaIniciada)"
+                                    <button type="button" class="btn @btnClass col-@btnColValue p-1 " disabled="@(!partidaIniciada)"
                                             @onclick="@(() => SeleccionarCasilla(animal, index))">
-                                        <p class="fs-1 my-1 p-0">@animal</p>
+                                        <p class="fs-1 my-1 p-0 ">@RevisarAnimal(animal, index) </p>
                                     </button>
                                 }
                             </div>
@@ -99,10 +99,10 @@
 @code
 {
     const string CaracterVacio = "\u200D";
+    const string Interrogante = "❓";
 
     int filas = 4;
     int cols = 4;
-
     bool partidaIniciada;
     Modo modo = Modo.Normal;
     Dificultad dificultad = Dificultad._4x4;
@@ -123,13 +123,18 @@
 
     List<string> emojisMezclados = new List<string>();
     List<string> listaEmojis = new List<string>();
+    bool[] animalesOcultados;
+
+    int[] tiempoAnimalMostrado;
+    int[] animalMostrado;
+
 
     protected override void OnInitialized()
     {
         temporizador = new Timer(100);
         temporizador.Elapsed += Timer_Tick;
-
         GenerarTablero();
+        MostrarBotones();
     }
 
     void GenerarTablero()
@@ -137,12 +142,16 @@
         Random ran = new Random();
         listaEmojis = Emojis.ObtenerListaAnimales(filas, cols);
         emojisMezclados = listaEmojis.OrderBy(item => ran.Next()).ToList();
+        if (modo == Modo.Memoria)
+            MostrarBotones();
     }
 
     void IniciarPartida()
     {
-        partidaIniciada = true;
+        if (modo == Modo.Memoria)
+            OcultarBotones();
 
+        partidaIniciada = true;
         SetupGame();
         temporizador.Start();
     }
@@ -164,12 +173,96 @@
     {
         TerminarPartida();
         GenerarTablero();
+        MostrarBotones();
     }
 
     void CambiarModo(ChangeEventArgs valor)
     {
         modo = (Modo)Enum.Parse(typeof(Modo), valor.Value.ToString());
         SetearTiempo();
+    }
+
+    void SeleccionarCasillaMemoria(string animal, int index)
+    {
+        if (ultimoEmojiEncontrado == CaracterVacio)
+        {
+            animalesOcultados[index] = false;
+            ultimoEmojiEncontrado = animal;
+            ultimoAnimalIndice = index;
+        }
+        else if (ultimoEmojiEncontrado == animal && ultimoAnimalIndice != index)
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+
+            animalesOcultados[index] = false;
+            emojisMezclados = emojisMezclados
+             .Select(a => a.Replace(animal, CaracterVacio))
+             .ToList();
+            puntos += CalcularPuntos();
+            parejasEncontradas++;
+
+            if (parejasEncontradas >= listaEmojis.Count / 2)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+        else
+        {
+            animalesOcultados[index] = false;
+            int tiempo = decimasDeSegundos + 4;
+
+            tiempoAnimalMostrado[index] = tiempo;
+            tiempoAnimalMostrado[ultimoAnimalIndice] = tiempo;
+
+            animalMostrado[index] = index;
+            animalMostrado[ultimoAnimalIndice] = ultimoAnimalIndice;
+
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+
+            if (modo == Modo.UnaVida)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+    }
+
+    bool AnimalOculto(int index)
+    {
+        return (animalesOcultados[index]);
+    }
+
+    void MostrarBotones()
+    {
+        animalesOcultados = new bool[emojisMezclados.Count];
+        for (int i = 0; i < emojisMezclados.Count; i++)
+            animalesOcultados[i] = false;
+    }
+
+    void OcultarBotones()
+    {
+        animalesOcultados = new bool[emojisMezclados.Count];
+        tiempoAnimalMostrado = new int[emojisMezclados.Count];
+        animalMostrado = new int[emojisMezclados.Count];
+        for (int i = 0; i < emojisMezclados.Count; i++)
+        {
+            animalMostrado[i] = -1;
+            animalesOcultados[i] = true;
+        }
+    }
+
+    string RevisarAnimal(string animal, int index)
+    {
+        if (modo != Modo.Memoria)
+            return animal;
+        if (animal == CaracterVacio)
+            return animal;
+        if (AnimalOculto(index))
+            return Interrogante;
+        return animal;
     }
 
     void SetearTiempo()
@@ -184,7 +277,6 @@
     void CambiarDificultad(ChangeEventArgs valor)
     {
         dificultad = (Dificultad)Enum.Parse(typeof(Dificultad), valor.Value.ToString());
-
         switch (dificultad)
         {
             case Dificultad._4x4:
@@ -266,6 +358,11 @@
 
     void SeleccionarCasilla(string animal, int index)
     {
+        if (modo == Modo.Memoria)
+        {
+            SeleccionarCasillaMemoria(animal, index);
+            return;
+        }
         if (ultimoEmojiEncontrado == CaracterVacio)
         {
             ultimoEmojiEncontrado = animal;
@@ -325,6 +422,8 @@
     {
         InvokeAsync(() =>
         {
+            DesaparecerEmojis();
+
             if (modo != Modo.Contrarreloj)
                 decimasDeSegundos++;
             else
@@ -334,21 +433,35 @@
                     TerminarPartida();
             }
 
-            if (modo == Modo.Cambiante)
-            {
-                if (decimasDeSegundos % 7 == 0)
-                {
-                    CambiarPosicionCartas();
-                }
-            }
+            CambiarPosicionCartas();
 
             tiempo = (decimasDeSegundos / 10F).ToString("0.0s");
             StateHasChanged();
         });
     }
 
+    void DesaparecerEmojis()
+    {
+        if (modo != Modo.Memoria )
+            return;
+
+        for (int i = 0; i < animalMostrado.Length; i++)
+        {
+            if (animalMostrado[i] >= 0 && tiempoAnimalMostrado[i] <= decimasDeSegundos)
+            {
+                animalesOcultados[i] = true;
+                animalMostrado[i] = -1;
+                tiempoAnimalMostrado[i] = 0;
+            }
+
+        }
+    }
+
     void CambiarPosicionCartas()
     {
+        if (modo != Modo.Cambiante || decimasDeSegundos % 7 != 0)
+            return;
+
         if (emojisMezclados.FindAll(x => !x.Equals(CaracterVacio)).Count > 4)
         {
             Random ran = new Random();
