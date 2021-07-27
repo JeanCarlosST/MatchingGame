@@ -62,7 +62,7 @@
 
                     @if (cantidadJugadores == 16)
                     {
-                        <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
+                        <li class="nav-item " role="presentation">
                             <button id="OctavosTab" type="button" class="nav-link" aria-selected="false"
                                     data-bs-toggle="tab" role="tab" data-bs-target="#divOctavos">
                                 <span class="fw-bold fs-2 text-dark">Octavos</span>
@@ -71,20 +71,20 @@
                     }
                     @if (cantidadJugadores >= 8)
                     {
-                        <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
+                        <li class="nav-item " role="presentation">
                             <button id="CuartosTab" type="button" class="nav-link" aria-selected="false"
                                     data-bs-toggle="tab" role="tab" data-bs-target="#divCuartos">
                                 <span class="fw-bold fs-2 text-dark">Cuartos</span>
                             </button>
                         </li>
                     }
-                    <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
+                    <li class="nav-item " role="presentation">
                         <button id="SemifinalesTab" type="button" class="nav-link active" aria-selected="true"
                                 data-bs-toggle="tab" role="tab" data-bs-target="#divSemifinales">
-                            <span class="fw-bold fs-2 text-dark">Semifinales</span>
+                            <span class="fw-bold fs-2 text-dark ">Semifinales</span>
                         </button>
                     </li>
-                    <li class="nav-item col-3 d-flex justify-content-center" role="presentation">
+                    <li class="nav-item " role="presentation">
                         <button id="FinalTab" type="button" class="nav-link" aria-selected="false"
                                 data-bs-toggle="tab" role="tab" data-bs-target="#divFinal">
                             <span class="fw-bold fs-2 text-dark">Final</span>
@@ -97,7 +97,7 @@
 
                     @if (cantidadJugadores == 16)
                     {
-                        <div class="tab-pane fade col-3 row d-flex px-4" id="divOctavos" role="tabpanel" aria-labelledby="OctavosTab">
+                        <div class="tab-pane fade col-lg-4 col-12 row d-flex px-4" id="divOctavos" role="tabpanel" aria-labelledby="OctavosTab">
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 4))
                                 {
@@ -108,7 +108,7 @@
                     }
                     @if (cantidadJugadores >= 8)
                     {
-                        <div class="tab-pane fade col-3 row d-flex px-4" id="divCuartos" role="tabpanel" aria-labelledby="CuartosTab">
+                        <div class="tab-pane fade col-lg-4 col-12 row d-flex px-4" id="divCuartos" role="tabpanel" aria-labelledby="CuartosTab">
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 3))
                                 {
@@ -117,7 +117,7 @@
                             </div>
                         </div>
                     }
-                    <div class="tab-pane fade show active col-3 row d-flex px-4" id="divSemifinales" role="tabpanel" aria-labelledby="SemifinalesTab">
+                    <div class="tab-pane fade show col-lg-4 col-12 col- active  row d-flex px-4" id="divSemifinales" role="tabpanel" aria-labelledby="SemifinalesTab">
                         <div class="col-12 align-items-center">
                             @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 2 ))
                             {
