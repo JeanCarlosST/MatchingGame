@@ -54,20 +54,30 @@ namespace MatchingGame.Server.Hubs
             if(partida != null)
             {
                 Manejador.TerminarPartidaTorneo(partida);
+                EnviarPartidaAMetodo(partida, "RecibirMovimiento");
 
-                Task j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirMovimiento", partida));
-                Task j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RecibirMovimiento", partida));
+                //Task j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirMovimiento", partida));
+                //Task j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RecibirMovimiento", partida));
 
-                Task.WaitAll(new[] { j1, j2 });
+                //Task.WaitAll(new[] { j1, j2 });
                 
                 if(partida.Terminada)
                 {
-                    j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirMovimiento", partida));
-                    j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RecibirMovimiento", partida));
+                    //EnviarPartidaAMetodo(partida, "RecibirMovimiento");
+                    //j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("RecibirMovimiento", partida));
+                    //j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RecibirMovimiento", partida));
 
-                    Task.WaitAll(new[] { j1, j2 });
+                    //Task.WaitAll(new[] { j1, j2 });
                 }
             }
+        }
+
+        private void EnviarPartidaAMetodo(TorneoPartida partida, string metodo)
+        {
+            Task j1 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorUno.ConnectionId).SendAsync(metodo, partida));
+            Task j2 = Task.Factory.StartNew(() => Clients.Client(partida.JugadorDos.ConnectionId).SendAsync(metodo, partida));
+
+            Task.WaitAll(new[] { j1, j2 });
         }
 
         public async Task ActualizarPartidas(TorneoPartida partida)
@@ -77,6 +87,8 @@ namespace MatchingGame.Server.Hubs
             foreach(var jugador in torneo.Jugadores)
             {
                 await Clients.Client(jugador.ConnectionId).SendAsync("ActualizarPartidas", torneo.Partidas);
+                await Clients.Client(jugador.ConnectionId).SendAsync("Nollegara");
+
             }
         }
     }

@@ -127,6 +127,19 @@ namespace MatchingGame.Shared
 
             return true;
         }
+
+        public override string ToString()
+        {
+            return $"PartidaId: {PartidaId}, " +
+                $"JugadorUno {JugadorUno.Nickname}, " +
+                $"Puntos: {JugadorUnoDetalle.Puntos}, " +
+                $"Tiempo: {JugadorUnoDetalle.ParesEncontrados}, " +
+                $"JugadorDos: {JugadorDos.Nickname}, " +
+                $"Puntos: {JugadorDosDetalle.Puntos}, " +
+                $"Tiempo: {JugadorDosDetalle.ParesEncontrados}, " +
+                $"Modo: {Modo.ToString()}, " +
+                $"Dificultad: {Dificultad.ToString()}";
+        }
     }
 
     public class PartidaJugadorDetalle

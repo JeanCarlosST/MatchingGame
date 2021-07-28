@@ -18,7 +18,7 @@
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
                     <label class="input-group-text bg-light">Modo</label>
-                    <select class="form-select" @onchange="CambiarModo" @ref=""
+                    <select class="form-select" @onchange="CambiarModo"
                             disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Modo.Normal" selected>Normal</option>
                         <option value="@Modo.Contrarreloj">Contrarreloj</option>
