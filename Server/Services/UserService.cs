@@ -16,6 +16,8 @@ namespace MatchingGame.Server.Services
         Usuarios Autenticar(LoginModel usuarioLogin);
         bool RegistrarUsuario(RegisterModel usarioRegistro);
         public Usuarios ObtenerUsuarioPorJWT(string jwtToken);
+        public int ValidarRegistro(RegisterModel usuarioRegistro);
+
     }
 
     public class UserService : IUserService
@@ -50,6 +52,8 @@ namespace MatchingGame.Server.Services
         public bool RegistrarUsuario(RegisterModel usuarioRegistro)
         {
             var emailAddressExists = contexto.Usuarios.Where(u => u.Email == usuarioRegistro.Email).FirstOrDefault();
+            var NickNameExists = contexto.Usuarios.Where(u => u.NickName == usuarioRegistro.NickName).FirstOrDefault();
+            
             if (emailAddressExists == null)
             {
                 Usuarios usuario = new Usuarios(usuarioRegistro);
@@ -74,6 +78,18 @@ namespace MatchingGame.Server.Services
             }
 
             return usuario;
+        }
+
+        public int ValidarRegistro(RegisterModel usuarioRegistro)
+        {
+            var emailAddressExists = contexto.Usuarios.Where(u => u.Email == usuarioRegistro.Email);
+            var NickNameExists = contexto.Usuarios.Where(u => u.NickName == usuarioRegistro.NickName).FirstOrDefault();
+            if (emailAddressExists is null)
+                return 1;
+           else if (NickNameExists is null)
+                return 2;
+            else
+                return 0;
         }
     }
 }

@@ -6,7 +6,6 @@
 @inject IToastService Toast
 @inject AuthenticationStateProvider AuthStateProvider
 @implements IAsyncDisposable
-
 @attribute [Authorize]
 
 <div class="row d-flex justify-content-center">
@@ -261,13 +260,13 @@
     </div>
     @if (modalAbandonar)
     {
-        <Modal Titulo="Abandonar partida" Descripcion="¿Seguro que quieres abandonar la partida?"
+        <MatchingGame.Client.Shared.Modal Titulo="Abandonar partida" Descripcion="¿Seguro que quieres abandonar la partida?"
                BtnVerdeTexto="Abandonar" BtnRojoTexto="Cancelar" OnClose="@AbandonarPartida" />
     }
 
     @if (modalCambiar)
     {
-        <Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
+        <MatchingGame.Client.Shared.Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
                BtnVerdeTexto="Cambiar" BtnRojoTexto="Cancelar" OnClose="@CambiarPartida" />
     }
 

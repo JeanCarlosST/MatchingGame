@@ -50,6 +50,12 @@ namespace MatchingGame.Server.Controllers
 
             return await Task.FromResult(respuesta);
         }
+        [HttpPost("validar")]
+        public int ValidarRegistro(RegisterModel usuarioRegistro)
+        {
+            int respuesta = userService.ValidarRegistro(usuarioRegistro);
+            return respuesta;
+        }
 
         [HttpPost("obtener_usuario")]
         public async Task<ActionResult<Usuarios>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
