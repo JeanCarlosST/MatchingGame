@@ -1,4 +1,9 @@
 ﻿@page "/login"
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
+@inject IToastService Toast
+
 <div class="container">
 
     <div class="row d-flex justify-content-center">
@@ -13,6 +18,7 @@
                             <img class="rounded-circle" src="/Images/tempLogo.jpg" width="120" />
                         </div>
                         <span class="fs-4 mt-2">
+                            
                             <b>Inicio de sesión</b>
                         </span>
                     </div>
@@ -22,20 +28,34 @@
                     <form>
                         <div class="input-group mb-3">
                             <span class="input-group-text"><i class="oi oi-person"></i></span>
-                            <input type="text" class="form-control m-0" placeholder="Usuario o Email">
+                            <input type="text" class="form-control m-0" placeholder="Usuario o Email" @bind="usuarioLogin.Email">
                         </div>
 
                         <div class="input-group mb-2">
                             <span class="input-group-text"><i class="oi oi-key"></i></span>
-                            <input type="password" class="form-control" placeholder="Contraseña">
+                            <input type="password" class="form-control" placeholder="Contraseña" @bind="usuarioLogin.Clave">
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox">
-                            <label class="form-check-label" for="customControlInline">Recordarme</label>
+                            <input class="form-check-input" type="checkbox" @bind="usuarioLogin.Recuerdame">
+                            <label class="form-check-label" for="customControlInline" >Recordarme</label>
                         </div>
                         <div class="d-flex flex-column mt-3">
-                            <button type="button" class="btn btn-success">Iniciar Sesión</button>
+                            <button type="button" class="btn btn-success d-flex justify-content-center" 
+                                    @onclick="ValidarLogin">
+                                
+                                @if(iniciandoSesion)
+                                {
+                                    <span>Iniciando sesión</span>
+                                    <div class="ml-2">
+                                        <span class="spinner-border spinner-border-sm"></span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span>Iniciar sesión</span>
+                                }
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -47,3 +67,34 @@
         </div>
     </div>
 </div>
+
+@code {
+
+    public LoginModel usuarioLogin { get; set; }
+    public bool iniciandoSesion;
+
+    protected override void OnInitialized()
+    {
+        usuarioLogin = new LoginModel();
+    }
+
+    public async Task ValidarLogin()
+    {
+        iniciandoSesion = true;
+        var usuarioDevuelto = await UserService.LoginAsync(usuarioLogin);
+        if(!String.IsNullOrEmpty(usuarioLogin.Email))
+        {
+            await ((CustomAuthenticationStateProvider)AuthStateProvider).MarcarUsuarioLogeado(usuarioDevuelto);
+            await Task.Delay(1000);
+            iniciandoSesion = false;
+            NavigationManager.NavigateTo("/");
+            Toast.ShowSuccess("Logeado correctamente");
+        }
+        else
+        {
+            Toast.ShowError("Email o contraseña incorrectos");
+        }
+
+        iniciandoSesion = false;
+    }
+}

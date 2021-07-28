@@ -1,0 +1,288 @@
+﻿@page "/myprofile"
+
+<div class="container">
+
+    <div class="row d-flex justify-content-center">
+
+        <div class="row col-lg-9 ">
+            <div class="row card shadow-lg bg-info bg-gradient border-1 border-dark ">
+                <div class="card-header border-1 bg-transparent">
+                    <div class="d-flex flex-column text-center my-2">
+                        <span class="fs-4 mt-2">
+                            <b>
+                                Perfil de @Usuario.NickName <span class="oi oi-cog" />
+                            </b>
+                        </span>
+                    </div>
+                </div>
+                <div class="row p-0">
+
+                    <div class="col  justify-content-center m-2 align-items-center">
+
+                        <div class="row  mb-3 justify-content-center">
+                            <div class="col">
+                                <label class="row justify-content-center fw-bold">
+                                    🏆  1vs1:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.Victorias1v1
+                                </label>
+                            </div>
+
+                            <div class="col ">
+                                <label class="row justify-content-center fw-bold">
+                                    🏆 Torneos:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.VictoriasTorneos
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="row row mb-3 justify-content-center">
+                            <div class="col">
+                                <label class="row justify-content-center fw-bold">
+                                    1vs1 Jugados:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.Victorias1v1
+                                </label>
+                            </div>
+                            <div class="col ">
+                                <label class="row justify-content-center fw-bold">
+                                    Torneos Jugados:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.VictoriasTorneos
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col d-flex justify-content-center">
+                            <button type="button" class="row btn btn-@clase  " @onclick="()=> { Estadisticas = !Estadisticas;  }">
+                                @if (Estadisticas)
+                                {<span>Amigos</span> }
+                                else
+                                { <span>Estadisticas</span>}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="col bg-info p-0">
+                        @if (Estadisticas)
+                        {
+                            <div class="card-header">
+                                <h6 class="fw-bold">Mejores Tiempos</h6>
+                            </div>
+                            <table class="table table-borderless ">
+                                <thead>
+                                    <tr>
+                                        <th> </th>
+                                        <th class="fw-bold">4x4</th>
+                                        <th class="fw-bold">4x5</th>
+                                        <th class="fw-bold">4x6</th>
+                                        <th class="fw-bold">4x7</th>
+                                        <th class="fw-bold">4x8</th>
+                                        <th class="fw-bold">6x6</th>
+                                        <th class="fw-bold">6x7</th>
+                                        <th class="fw-bold">8x8</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-transparent">
+                                    <tr>
+                                        <td class="fw-bold">Normal</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Una Vida</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Cambiante</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Memoria</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Contrareloj</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="btn-group shadow-sm d-flex justify-content-center" role="group">
+                                <ul class="nav nav-pills d-flex justify-content-center" role="tablist">
+                                    <li class="nav-item bg-info" role="presentation">
+                                        <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#amigos"
+                                                type="button" role="tab" aria-controls="amigos" aria-selected="true">
+                                            Amigos
+                                        </button>
+                                    </li>
+                                    <li class="nav-item bg-info" role="presentation">
+                                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#solicitudes"
+                                                type="button" role="tab" aria-controls="solicitudes" aria-selected="false">
+                                            Solicitudes de Amistad
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="tab-content d-flex justify-content-center" id="myTabContent">
+                                <div class="tab-pane fade show active" id="amigos" role="tabpanel" aria-labelledby="amigos-tab">
+                                    <table class="table table-borderless ">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Usuario</th>
+                                                <th>🏆 1vs1</th>
+                                                <th>🏆 Torneos</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-transparent">
+                                            @foreach (tempUser user in Usuario.ListaAmigos)
+                                            {
+                                                <tr> 
+                                                    <td><i class="oi oi-person"></i></td>
+                                                    <td><a href="/userprofile/@user.id">@user.NickName</a></td>
+                                                    <td>@user.Victorias1v1</td>
+                                                    <td >@user.VictoriasTorneos</td>
+                                                    <td class="p-0">
+                                                        <button type="button" class="btn bg-danger p-0">
+                                                            <span class="oi oi-x p-1" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="tab-pane fade" id="solicitudes" role="tabpanel" aria-labelledby="solicitudes-tab">
+                                    <table class="table table-borderless ">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Usuario</th>
+                                                <th>🏆 1vs1</th>
+                                                <th>🏆 Torneos</th>
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-transparent">
+                                            @foreach (tempUser user in Usuario.Solicitudes)
+                                            {
+                                                <tr>
+                                                    <td><span class="oi oi-plus" /></td>
+                                                    <td><a href="/userprofile/@user.id">@user.NickName</a></td>
+                                                    <td>@user.Victorias1v1</td>
+                                                    <td>@user.VictoriasTorneos</td>
+
+                                                    <td class=" p-0">
+                                                        <button type="button" class="col btn btn-primary p-0">
+                                                            <span class="oi oi-plus p-1" />
+                                                        </button>
+                                                        <button type="button" class="col btn bg-danger p-0">
+                                                            <span class="oi oi-x p-1" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    public class tempUser
+    {
+        public int id { get; set; }
+        public string Nombres { get; set; }
+        public string NickName { get; set; }
+        public string Email { get; set; }
+        public int Victorias1v1 { get; set; }
+        public int VictoriasTorneos { get; set; }
+        public List<tempUser> ListaAmigos = new List<tempUser>();
+        public List<tempUser> Solicitudes = new List<tempUser>();
+
+    }
+    public static List<tempUser> Users;
+    public tempUser Usuario = new tempUser();
+    bool Estadisticas = false;
+    string clase => Estadisticas ? "success" : "warning";
+
+    protected override void OnInitialized()
+    {
+        Nuevo();
+        Usuario = Users[0];
+    }
+    private void Nuevo()
+    {
+        Users = new List<tempUser>();
+
+        Users.Add(
+            new tempUser()
+            {
+                id = 1,
+                Nombres = "Alvin",
+                NickName = "AlvinDJA",
+                Email = "Alvin@.com ",
+                Victorias1v1 = 25,
+                VictoriasTorneos = 4
+            });
+        Users.Add(
+     new tempUser()
+     {
+         id = 2,
+         Nombres = "Diego",
+         NickName = "DiegoXX",
+         Email = "Diego@.com ",
+         Victorias1v1 = 2,
+         VictoriasTorneos = 1
+     });
+        Users.Add(
+    new tempUser()
+    {
+        id = 3,
+        Nombres = "Davi",
+        NickName = "DaviO.o",
+        Email = "Davi@.com ",
+        Victorias1v1 = 20,
+        VictoriasTorneos = 10
+    });
+        Users.Add(
+    new tempUser()
+    {
+        id = 4,
+        Nombres = "Wilson",
+        NickName = "Guison",
+        Email = "Wilson@.com ",
+        Victorias1v1 = 30,
+        VictoriasTorneos = 2
+    });
+        Users.Add(
+    new tempUser()
+    {
+        id = 5,
+        Nombres = "Jean",
+        NickName = "Kleyton",
+        Email = "Jean@.com ",
+        Victorias1v1 = 1,
+        VictoriasTorneos = 50
+    });
+        Users[0].ListaAmigos.Add(Users[1]);
+        Users[0].ListaAmigos.Add(Users[2]);
+        Users[0].Solicitudes.Add(Users[3]);
+        Users[0].Solicitudes.Add(Users[4]);
+    }
+
+
+    private void Guardar()
+    {
+        ///Hazlo que guarde papá
+    }
+}

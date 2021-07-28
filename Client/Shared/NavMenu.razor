@@ -1,4 +1,8 @@
-﻿<nav class="navbar navbar-expand-sm navbar-light bg-info bg-gradient box-shadow">
+﻿@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject IToastService Toast
+
+<nav class="navbar navbar-expand-sm navbar-light bg-info bg-gradient box-shadow">
     <div class="container-fluid m-0 ">
         <a class="navbar-brand d-flex align-items-center" href="/">
             <img src="Images/tempLogo.jpg" width="40" class="d-inline-block rounded-circle align-text-top" />
@@ -22,11 +26,15 @@
                         <span class="oi oi-people" aria-hidden="true"></span><b>1vs1</b>
                     </NavLink>
                 </li>
-                <li class="nav-item px-1">
-                    <NavLink class="nav-link" href="/torneos">
-                        <span class="oi oi-globe" aria-hidden="true"></span><b>Torneos</b>
-                    </NavLink>
-                </li>
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item px-1">
+                            <NavLink class="nav-link" href="/torneos">
+                                <span class="oi oi-globe" aria-hidden="true"></span><b>Torneos</b>
+                            </NavLink>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
                 <li class="nav-item px-1">
                     <NavLink class="nav-link" href="/rankings">
                         <span class="oi oi-signal"></span><b>Rankings</b>
@@ -38,29 +46,82 @@
                     </NavLink>
                 </li>
             </ul>
-            <ul class="nav navbar-nav">
-                <li class="nav-item px-1">
-                    <NavLink class="nav-link" href="/login">
-                        <span class="oi oi-person"></span><b>Iniciar sesión</b>
-                    </NavLink>
-                </li>
-                <li class="nav-item px-1">
-                    <NavLink class="nav-link" href="/register">
-                        <span class="oi oi-account-login"></span><b>Registrarse</b>
-                    </NavLink>
-                </li>
-            </ul>
+            <AuthorizeView>
+                <Authorized>
+                    <ul class="nav navbar-nav">
+                        <li class="nav-item px-1">
+                            <NavLink class="nav-link" href="/myprofile">
+                                <b>@NombreUsuario</b>
+                            </NavLink>
+                        </li>
+                        <li class="nav-item px-1">
+                            <NavLink class="nav-link" @onclick="MostrarModalCerrarSesion">
+                                <span class="oi oi-account-logout"></span><b>Cerrar sesión</b>
+                            </NavLink>
+                        </li>
+                    </ul>
+                    @if(modalCerrarSesion)
+                    {
+                        <Modal Titulo="Cerrase sesión" Descripcion="¿Estás seguro que quieres cerrar sesión?" 
+                               BtnVerdeTexto="Cerrar sesión" BtnRojoTexto="Cancelar" OnClose="CerrarSesion"/>
+                    }
+                </Authorized>
+                <NotAuthorized>
+                    <ul class="nav navbar-nav">
+                        <li class="nav-item px-1">
+                            <NavLink class="nav-link" href="/login">
+                                <span class="oi oi-person"></span><b>Iniciar sesión</b>
+                            </NavLink>
+                        </li>
+                        <li class="nav-item px-1">
+                            <NavLink class="nav-link" href="/register">
+                                <span class="oi oi-account-login"></span><b>Registrarse</b>
+                            </NavLink>
+                        </li>
+                    </ul>
+                </NotAuthorized>
+            </AuthorizeView>
+            
         </div>
     </div>
 </nav>
 
 @code {
-    bool collapseNavMenu = true;
 
+    bool collapseNavMenu = true;
+    bool modalCerrarSesion;
     string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    string NombreUsuario;
 
     void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await ((CustomAuthenticationStateProvider)AuthStateProvider).GetAuthenticationStateAsync();
+        var usuario = authState.User;
+
+        if(usuario.Claims.Count() > 0)
+            NombreUsuario = usuario.Claims?.First(c => c.Type == ClaimTypes.Name).Value;
+    }
+
+    void MostrarModalCerrarSesion()
+    {
+        modalCerrarSesion = true;
+    }
+
+    async Task CerrarSesion(bool salir)
+    {
+        if(salir)
+        {
+            await ((CustomAuthenticationStateProvider)AuthStateProvider).MarcarUsuarioNoLogeado();
+            NavigationManager.NavigateTo("/");
+            Toast.ShowInfo("Sesión cerrada");
+        }
+
+        modalCerrarSesion = false;
     }
 }

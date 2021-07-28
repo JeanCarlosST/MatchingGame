@@ -1,64 +1,108 @@
 ﻿@page "/rankings"
 
 <div class="container">
-    <div class="row justify-content-center">
+    <div class="row d-flex justify-content-center">
 
-        <div class="card shadow-lg col-lg-8">
-            <div class="card-header">
-                <h3>Rankings</h3>
-            </div>
+        <ul class="nav nav-pills d-flex justify-content-center"  role="tablist">
+            <li class="nav-item bg-light" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#records" 
+                        type="button" role="tab" aria-controls="records" aria-selected="true">
+                    Ranking de records
+                </button>
+            </li>
+            <li class="nav-item bg-light" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#usuarios" 
+                        type="button" role="tab" aria-controls="usuarios" aria-selected="false">
+                    Ranking de usuarios
+                </button>
+            </li>
+        </ul>
 
-            <div class="row mb-sm-2">
+        <div class="tab-content d-flex justify-content-center" id="myTabContent">
+            <div class="tab-pane fade show active" id="records" role="tabpanel" aria-labelledby="records-tab">
+               
+                <div class="card">
 
-                <div class="col-sm-4 ">
-                    <div class="input-group">
-                        <label class="input-group-text">Modo</label>
-                        <select class="form-select">
-                            <option value="0" selected>Normal</option>
-                            <option value="1">Contrarreloj</option>
-                            <option value="2">Una vida</option>
-                            <option value="3">Memoria</option>
-                            <option value="4">Cambiante</option>
-                        </select>
+                    <div class="card-header">
+                        <h3>Records</h3>
+                    </div>
+
+                    <div class="card-body row mb-sm-2">
+
+                        <div class="col-sm-4 ">
+                            <div class="input-group">
+                                <label class="input-group-text">Modo</label>
+                                <select class="form-select">
+                                    <option value="0" selected>Normal</option>
+                                    <option value="1">Contrarreloj</option>
+                                    <option value="2">Una vida</option>
+                                    <option value="3">Memoria</option>
+                                    <option value="4">Cambiante</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4 ">
+                            <div class="input-group">
+                                <label class="input-group-text">Dificultad</label>
+                                <select class="form-select">
+                                    <option value="0" selected>4 x 4</option>
+                                    <option value="1">4 x 5</option>
+                                    <option value="2">4 x 6</option>
+                                    <option value="3">4 x 7</option>
+                                    <option value="4">4 x 8</option>
+                                    <option value="5">6 x 6</option>
+                                    <option value="6">6 x 7</option>
+                                    <option value="7">6 x 8</option>
+                                    <option value="8">8 x 8</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-12">
+                            <table class="table table-striped ">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Usuario</th>
+                                        <th>Mejor Tiempo</th>
+                                        <th>Puntos</th>
+                                        <th>Modo</th>
+                                        <th>Dificultad</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody style="background-color: white;" />
+                            </table>
+                        </div>
                     </div>
                 </div>
+            </div>
+            <div class="tab-pane fade" id="usuarios" role="tabpanel" aria-labelledby="usuarios-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Usuarios</h3>
+                    </div>
 
-                <div class="col-sm-4 ">
-                    <div class="input-group">
-                        <label class="input-group-text">Dificultad</label>
-                        <select class="form-select">
-                            <option value="0" selected>4 x 4</option>
-                            <option value="1">4 x 5</option>
-                            <option value="2">4 x 6</option>
-                            <option value="3">4 x 7</option>
-                            <option value="4">4 x 8</option>
-                            <option value="5">6 x 6</option>
-                            <option value="6">6 x 7</option>
-                            <option value="7">6 x 8</option>
-                            <option value="8">8 x 8</option>
-                        </select>
+                    <div class="card-body">
+                        <table class="table table-striped ">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Usuario</th>
+                                    <th>Victorias 1vs1</th>
+                                    <th>Victorias Torneos</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody style="background-color: white;" />
+                        </table>
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-12">
-                <table class="table table-striped ">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Usuario</th>
-                            <th>Mejor Tiempo</th>
-                            <th>Puntos</th>
-                            <th>Victorias 1vs1</th>
-                            <th>Victorias Torneos</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody style="background-color: white;" />
-                </table>
-            </div>
-
         </div>
+
+        
     </div>
 </div>
 
