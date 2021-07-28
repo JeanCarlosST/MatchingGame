@@ -261,13 +261,13 @@
     </div>
     @if (modalAbandonar)
     {
-        <Modal Titulo="Abandonar partida" Descripcion="¿Seguro que quieres abandonar la partida?"
+        <MatchingGame.Client.Shared.Modal Titulo="Abandonar partida" Descripcion="¿Seguro que quieres abandonar la partida?"
                BtnVerdeTexto="Abandonar" BtnRojoTexto="Cancelar" OnClose="@AbandonarPartida" />
     }
 
     @if (modalCambiar)
     {
-        <Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
+        <MatchingGame.Client.Shared.Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
                BtnVerdeTexto="Cambiar" BtnRojoTexto="Cancelar" OnClose="@CambiarPartida" />
     }
 
@@ -593,7 +593,7 @@
         if (abandonar)
             NavigationManager.NavigateTo("/");
 
-        modalAbandonar = abandonar;
+        modalAbandonar = false;
     }
 
     async Task CambiarPartida(bool cambiar)
