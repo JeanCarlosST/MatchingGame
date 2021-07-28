@@ -26,8 +26,12 @@ namespace MatchingGame.Server.DAL
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer(Properties.Resources.LocalCN);
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer("Server=localhost;Database=MatchingGameDB;User=sa;Password=hpt123456789;Trusted_Connection=False;");
+                //optionsBuilder.UseSqlServer("Data Source=localhost;Initial Catalog=MatchingGameDB;Persist Security Info=True;User=sa;Password=hpt123456789;");
+            }
+            
         }
     }
 }

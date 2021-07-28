@@ -1,4 +1,5 @@
-﻿using MatchingGame.Shared.Models;
+﻿using MatchingGame.Server.Entities;
+using MatchingGame.Shared.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -13,7 +14,7 @@ namespace MatchingGame.Server
 {
     public interface IJwtUtils
     {
-        public string GenerarJWTToken(Usuarios usuario);
+        public string GenerarJWTToken(Usuario usuario);
         public string ObtenerUsuarioPorJWT(string jwtToken);
         public int? ValidarJWTToken(string token);
 
@@ -28,7 +29,7 @@ namespace MatchingGame.Server
             this.appSettings = appSettings.Value;
         }
 
-        public string GenerarJWTToken(Usuarios usuario)
+        public string GenerarJWTToken(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
@@ -104,7 +105,7 @@ namespace MatchingGame.Server
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "nameid").Value);
 
                 return userId;
             }

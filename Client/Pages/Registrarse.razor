@@ -65,27 +65,65 @@
         </div>
     </div>
 </div>
-@code {
-    public RegisterModel usuarioRegistro { get; set; }
+    @code {
+        public RegisterModel usuarioRegistro { get; set; }
 
-    protected override void OnInitialized()
-    {
-        usuarioRegistro = new RegisterModel();
-    }
-
-    public async Task RegistrarUsuario()
-    {
-
-        bool registroResultado = await UserService.RegisterAsync(usuarioRegistro);
-
-        if(registroResultado)
+        protected override void OnInitialized()
         {
-            Toast.ShowSuccess("Registrado correctamente");
-            NavigationManager.NavigateTo("/login");
+            usuarioRegistro = new RegisterModel();
         }
-        else
+
+        public async Task RegistrarUsuario()
         {
-            Toast.ShowError("No se pudo registrar");
+
+            bool registroResultado = await UserService.RegisterAsync(usuarioRegistro);
+            int validacionResultado = await UserService.Validar(usuarioRegistro);
+            Console.WriteLine(validacionResultado);
+            if (registroResultado && validacionResultado == 0)
+            {
+                Toast.ShowSuccess("Registrado correctamente");
+                NavigationManager.NavigateTo("/login");
+            }
+            if(usuarioRegistro.Nombres is null)
+            {
+                Toast.ShowError("Ingrese un nombre");
+            }
+            if (usuarioRegistro.Clave is null)
+            {
+                Toast.ShowError("Ingrese una contraseña");
+            }
+            if (usuarioRegistro.ConfirmarClave is null)
+            {
+                Toast.ShowError("Por favor confirme su contraseña");
+            }
+            if (usuarioRegistro.Email is null)
+            {
+                Toast.ShowError("Ingrese una Direccion de correo electronico");
+            }
+            else if (usuarioRegistro.Email is null)
+            {
+                Toast.ShowError("Ingrese una Direccion de correo electronico");
+            }
+            if (usuarioRegistro.NickName is null)
+            {
+                Toast.ShowError("Ingrese un NickName");
+            }
+            else if (usuarioRegistro.Clave != usuarioRegistro.ConfirmarClave)
+            {
+                Toast.ShowError("Las contraseñas no coinciden");
+            }
+            else
+            {
+                switch (validacionResultado)
+                {
+                    case 1:
+                        Toast.ShowError("Este Email ya se encuentra registrado");
+                        break;
+                    case 2:
+                        Toast.ShowError("El NickName se encuentra en uso");
+                        break;
+                }
+            }
+
         }
     }
-}

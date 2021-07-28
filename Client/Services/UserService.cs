@@ -15,6 +15,7 @@ namespace MatchingGame.Client.Services
         public Task<Usuarios> LoginAsync(LoginModel usuarioLogin);
         public Task<bool> RegisterAsync(RegisterModel usuarioRegister);
         public Task<Usuarios> ObtenerUsuarioPorJWT(string jwt);
+        public Task<Int32> Validar(RegisterModel usuarioRegister);
     }
 
     public class UserService : IUserService
@@ -52,6 +53,14 @@ namespace MatchingGame.Client.Services
             var cuerpo = await respuesta.Content.ReadAsStringAsync();
             var usuarioDevuelto = JsonConvert.DeserializeObject<bool>(cuerpo);
             return await Task.FromResult(usuarioDevuelto);
+        }
+        public async Task<Int32> Validar(RegisterModel usuarioRegister)
+        {
+            var respuesta = await httpClient.PostAsJsonAsync<RegisterModel>("user/validar", usuarioRegister);
+            var cuerpo = await respuesta.Content.ReadAsStringAsync();
+            var usuarioDevuelto = JsonConvert.DeserializeObject<Int32>(cuerpo);
+            Console.WriteLine(usuarioDevuelto);
+            return usuarioDevuelto;
         }
     }
 }

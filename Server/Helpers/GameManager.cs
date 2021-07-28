@@ -203,6 +203,9 @@ namespace MatchingGame.Server.Helpers
         {
             foreach(var torneo in Torneos)
             {
+                if (torneo.Partidas == null)
+                    return null;
+
                 if (torneo.Partidas.Contains(partida))
                     return torneo;
             }

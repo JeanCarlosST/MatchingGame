@@ -68,5 +68,14 @@ namespace MatchingGame.Server.Properties {
                 return ResourceManager.GetString("LocalCN", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Data Source=Data\FMPrueba.db.
+        /// </summary>
+        internal static string SqLiteCN {
+            get {
+                return ResourceManager.GetString("SqLiteCN", resourceCulture);
+            }
+        }
     }
 }
