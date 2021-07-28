@@ -122,7 +122,7 @@ namespace MatchingGame.Shared
             if (obj.GetType() != typeof(TorneoPartida))
                 return false;
 
-            Partida partida = (TorneoPartida)obj;
+            TorneoPartida partida = (TorneoPartida)obj;
 
             if (!JugadorUno.Equals(partida.JugadorUno))
                 return false;
@@ -138,9 +138,6 @@ namespace MatchingGame.Shared
 
             if (ParesTotales != partida.ParesTotales)
                 return false;
-
-            //if (Iniciada != partida.Iniciada)
-            //    return false;
 
             if (Terminada != partida.Terminada)
                 return false;
@@ -172,19 +169,35 @@ namespace MatchingGame.Shared
 
         public override bool Equals(object obj)
         {
-            if (obj.GetType() != typeof(TorneoJugador))
+            if (obj.GetType() != typeof(Jugador) && obj.GetType() != typeof(TorneoJugador))
                 return false;
 
-            TorneoJugador jugador = (TorneoJugador)obj;
+            if (obj.GetType() == typeof(Jugador))
+            {
+                Jugador jugador = (Jugador)obj;
 
-            if (ConnectionId != jugador.ConnectionId)
-                return false;
+                if (ConnectionId != jugador.ConnectionId)
+                    return false;
 
-            if (Nickname != jugador.Nickname)
-                return false;
+                if (Nickname != jugador.Nickname)
+                    return false;
 
-            if (Victorias != jugador.Victorias)
-                return false;
+                if (Victorias != jugador.Victorias)
+                    return false;
+            }
+            else if (obj.GetType() == typeof(TorneoJugador))
+            {
+                TorneoJugador jugador = (TorneoJugador)obj;
+
+                if (ConnectionId != jugador.ConnectionId)
+                    return false;
+
+                if (Nickname != jugador.Nickname)
+                    return false;
+
+                if (Victorias != jugador.Victorias)
+                    return false;
+            }
 
             return true;
         }

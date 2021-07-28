@@ -20,9 +20,9 @@
                     <select class="form-select" @onchange="CambiarModo"
                             disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Modo.Normal" selected>Normal</option>
-                        <option value="@Modo.Contrarreloj">Contrarreloj</option>
-                        <option value="@Modo.UnaVida">Una vida</option>
-                        <option value="@Modo.Memoria" disabled>Memoria</option>
+                        @*<option value="@Modo.Contrarreloj">Contrarreloj</option>
+                        <option value="@Modo.UnaVida">Una vida</option>*@
+                        @*<option value="@Modo.Memoria" disabled>Memoria</option>*@
                         <option value="@Modo.Cambiante">Cambiante</option>
                     </select>
                 </div>
@@ -414,6 +414,9 @@
                 Toast.ShowError("Perdiste la partida :(", "Resultado");
             }
             partidaTerminada = false;
+
+            if (modo == Modo.Contrarreloj || modo == Modo.UnaVida)
+                GenerarTablero();
         }
     }
 
@@ -783,7 +786,7 @@
                 if (decimasDeSegundos <= 0)
                 {
                     TerminarPartida();
-                    Console.WriteLine("Terminado");
+                    GenerarTablero();
                     unoVsUnoHubConnection.SendAsync("PerderPartida", Partida, Yo).Wait();
                 }
             }
