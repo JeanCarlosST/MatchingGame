@@ -47,7 +47,7 @@
             </div>
 
             <div class="col-sm-4">
-                <div class="input-group d-flex flex-column">
+                <div class=" d-flex flex-column">
                     @if (Oponente == null && !buscandoOponente)
                     {
                         <button type="button" class="btn btn-info" @onclick="BuscarOponente" disabled="@(buscandoOponente)">
@@ -117,7 +117,7 @@
 
             <div class="row d-flex justify-content-center col-12 col-md-6 mt-3 mt-md-0">
 
-                <div class="col-6">
+                <div class="col-lg-6 col-10">
                     <div class="card bg-primary">
 
                         <div class="card-header text-center">
@@ -156,7 +156,7 @@
                     </div>
                 </div>
 
-                <div class="col-6">
+                <div class="col-lg-6 col-10">
                     <div class="card bg-danger">
 
                         @if (Oponente != null)
@@ -243,7 +243,7 @@
                     @if (Oponente != null)
                     {
                         <div class="col-6">
-                            <div class="input-group d-flex flex-column">
+                            <div class=" d-flex flex-column">
                                 <button type="button" class="btn btn-warning btn-lg"
                                         @onclick="ActivarModalAbandonar">
                                     Abandonar
