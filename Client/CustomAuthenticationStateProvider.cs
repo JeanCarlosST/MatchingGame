@@ -25,7 +25,7 @@ namespace MatchingGame.Client
 
             ClaimsIdentity identity = new ClaimsIdentity();
 
-            if (token != null && !String.IsNullOrEmpty(token))
+            if (!String.IsNullOrEmpty(token))
             {
                 Usuarios usuarioActual = await userService.ObtenerUsuarioPorJWT(token);
                 identity = GetClaimsIdentity(usuarioActual);

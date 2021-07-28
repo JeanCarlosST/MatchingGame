@@ -67,10 +67,10 @@ namespace MatchingGame.Server.Services
 
         public Usuario ObtenerUsuarioPorJWT(string jwtToken)
         {
-            string id = jwtUtils.ObtenerUsuarioPorJWT(jwtToken);
+            int? id = jwtUtils.ValidarJWTToken(jwtToken);
             Usuario usuario = null;
 
-            if (!String.IsNullOrEmpty(id))
+            if (id != null)
             {
                 usuario = contexto.Usuarios
                     .Where(u => u.UsuarioId == Convert.ToInt32(id))
