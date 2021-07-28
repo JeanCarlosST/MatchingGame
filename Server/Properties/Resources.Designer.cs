@@ -61,6 +61,15 @@ namespace MatchingGame.Server.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Server=tcp:wafotestingserver.database.windows.net,1433;Initial Catalog=MatchingGameDB;Persist Security Info=False;User ID=Wafo20;Password=3h466T570;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;.
+        /// </summary>
+        internal static string AzureCN {
+            get {
+                return ResourceManager.GetString("AzureCN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server=localhost;Database=MatchingGameDB;User=sa;Password=hpt123456789;Trusted_Connection=False;.
         /// </summary>
         internal static string LocalCN {
