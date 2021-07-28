@@ -103,7 +103,7 @@
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 4))
                                 {
-                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                                 }
                             </div>
                         </div>
@@ -114,7 +114,7 @@
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 3))
                                 {
-                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                                 }
                             </div>
                         </div>
@@ -123,7 +123,7 @@
                         <div class="col-12 align-items-center">
                             @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 2))
                             {
-                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                             }
                         </div>
                     </div>
@@ -132,7 +132,7 @@
                         <div class="col-12 align-items-center">
                             @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 1))
                             {
-                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                             }
                         </div>
                     </div>
@@ -267,7 +267,7 @@
         {
             rondaActual = ronda;
             tabActual = 4 - CantidadRondas() + rondaActual;
-            Toast.ShowInfo("Torneo avanza a la siguite ronda", "Ronda finalizada");
+            Toast.ShowInfo("Torneo avanza a la siguiente ronda", "Ronda finalizada");
         }
 
         mostrarTablero = true;

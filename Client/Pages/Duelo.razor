@@ -24,7 +24,14 @@
         </div>
         
         <div class="col-12 text-center fw-bold">
-            <label>@Partida.JugadorUno.Nickname</label>
+            @if (@SoyYo(Partida.JugadorUno.Nickname))
+            {
+                <label class="text-white">@Partida.JugadorUno.Nickname</label>
+            }
+            else
+            {
+                <label>@Partida.JugadorUno.Nickname</label>
+            }
         </div>
     </div>
     <div class="col-2 d-flex flex-column align-items-center justify-content-center m-0 p-0 text-center">
@@ -59,7 +66,14 @@
         </div>
         
         <div class="col-12 text-center fw-bold">
-            <label>@Partida.JugadorDos.Nickname</label>
+            @if (@SoyYo(Partida.JugadorDos.Nickname))
+            {
+                <label class="text-white">@Partida.JugadorDos.Nickname</label>
+            }
+            else
+            {
+                <label>@Partida.JugadorDos.Nickname</label>
+            }
         </div>
     </div>
 </div>
@@ -72,6 +86,9 @@
 
     [Parameter]
     public EventCallback JugarBtnHandler { get; set; }
+
+    [Parameter]
+    public Jugador Yo { get; set; }
 
     private void Jugar()
     {
@@ -89,5 +106,13 @@
         }
 
         return 0;
+    }
+
+    private bool SoyYo(string nick)
+    {
+        if (Yo is not null)
+            if (Yo.Nickname == nick)
+                return true;
+        return false;
     }
 }
