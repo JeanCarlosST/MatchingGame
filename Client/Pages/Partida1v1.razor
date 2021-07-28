@@ -22,7 +22,7 @@
                         <option value="@Modo.Normal" selected>Normal</option>
                         @*<option value="@Modo.Contrarreloj">Contrarreloj</option>
                         <option value="@Modo.UnaVida">Una vida</option>*@
-                        @*<option value="@Modo.Memoria" disabled>Memoria</option>*@
+                        <option value="@Modo.Memoria" >Memoria</option>
                         <option value="@Modo.Cambiante">Cambiante</option>
                     </select>
                 </div>
@@ -107,7 +107,7 @@
 
                                 <button type="button" class="btn @btnClass col-@btnColValue p-1" disabled="@(!partidaIniciada || jugadorDesconectado)"
                                         @onclick="@(() => SeleccionarCasilla(animal, index))">
-                                    <p class="fs-1 my-1 p-0">@animal</p>
+                                    <p class="fs-1 my-1 p-0">@RevisarAnimal(animal, index)</p>
                                 </button>
                             }
                         </div>
@@ -275,6 +275,7 @@
 @code
 {
     const string CaracterVacio = "\u200D";
+    const string Interrogante = "❓";
 
     Modo modo = Modo.Normal;
     Dificultad dificultad = Dificultad._4x4;
@@ -284,6 +285,7 @@
 
     Timer temporizador;
     int decimasDeSegundos = 0;
+    string tiempo = "0.0s";
 
     string ultimoEmojiEncontrado = CaracterVacio;
     int ultimoAnimalIndice = -1;
@@ -294,6 +296,9 @@
 
     List<string> emojisMezclados = new List<string>();
     List<string> listaEmojis = new List<string>();
+    bool[] animalesOcultados;
+    int[] tiempoAnimalMostrado;
+    int[] animalMostrado;
 
     HubConnection unoVsUnoHubConnection;
 
@@ -327,6 +332,8 @@
         Yo = new Jugador();
 
         GenerarTablero();
+        MostrarBotones();
+
     }
 
     async Task<string> ObtenerNicknameUsuario()
@@ -423,7 +430,8 @@
     async Task IniciarPartida()
     {
         await unoVsUnoHubConnection.SendAsync("JugadorIniciaPartida", Yo);
-
+        if (modo == Modo.Memoria)
+            OcultarBotones();
         partidaIniciada = true;
 
         if (partidaIniciada)
@@ -558,6 +566,8 @@
         listaEmojis = Emojis.ObtenerListaAnimales(dificultad);
         emojisMezclados = listaEmojis.OrderBy(item => ran.Next()).ToList();
         Partida.ParesTotales = emojisMezclados.Count / 2;
+        if (modo == Modo.Memoria)
+            MostrarBotones();
     }
 
     void SetupGame()
@@ -577,6 +587,8 @@
     {
         TerminarPartida();
         GenerarTablero();
+        MostrarBotones();
+
     }
 
     void ActivarModalAbandonar()
@@ -714,8 +726,96 @@
         SetearTiempo();
     }
 
+    async Task SeleccionarCasillaMemoria(string animal, int index)
+    {
+        if (ultimoEmojiEncontrado == CaracterVacio)
+        {
+            animalesOcultados[index] = false;
+            ultimoEmojiEncontrado = animal;
+            ultimoAnimalIndice = index;
+        }
+        else if (ultimoEmojiEncontrado == animal && ultimoAnimalIndice != index)
+        {
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            animalesOcultados[index] = false;
+            emojisMezclados = emojisMezclados
+                .Select(a => a.Replace(animal, CaracterVacio))
+                .ToList();
+
+            YoDetalle.Puntos += CalcularPuntos();
+            YoDetalle.ParesEncontrados++;
+            await MarcarParejaEncontrada();
+
+            if (YoDetalle.ParesEncontrados >= listaEmojis.Count / 2)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+        else
+        {
+            animalesOcultados[index] = false;
+            int tiempo = decimasDeSegundos + 4;
+
+            tiempoAnimalMostrado[index] = tiempo;
+            tiempoAnimalMostrado[ultimoAnimalIndice] = tiempo;
+
+            animalMostrado[index] = index;
+            animalMostrado[ultimoAnimalIndice] = ultimoAnimalIndice;
+
+            ultimoEmojiEncontrado = CaracterVacio;
+            ultimoAnimalIndice = -1;
+            if (modo == Modo.UnaVida)
+            {
+                TerminarPartida();
+                GenerarTablero();
+            }
+        }
+    }
+
+    bool AnimalOculto(int index)
+    {
+        return (animalesOcultados[index]);
+    }
+
+    void MostrarBotones()
+    {
+        animalesOcultados = new bool[emojisMezclados.Count];
+        for (int i = 0; i < emojisMezclados.Count; i++)
+            animalesOcultados[i] = false;
+    }
+
+    void OcultarBotones()
+    {
+        animalesOcultados = new bool[emojisMezclados.Count];
+        tiempoAnimalMostrado = new int[emojisMezclados.Count];
+        animalMostrado = new int[emojisMezclados.Count];
+        for (int i = 0; i < emojisMezclados.Count; i++)
+        {
+            animalMostrado[i] = -1;
+            animalesOcultados[i] = true;
+        }
+    }
+
+    string RevisarAnimal(string animal, int index)
+    {
+        if (modo != Modo.Memoria)
+            return animal;
+        if (animal == CaracterVacio)
+            return animal;
+        if (AnimalOculto(index))
+            return Interrogante;
+        return animal;
+    }
+
     async Task SeleccionarCasilla(string animal, int index)
     {
+        if (modo == Modo.Memoria)
+        {
+            await SeleccionarCasillaMemoria(animal, index);
+            return;
+        }
         if (ultimoEmojiEncontrado == CaracterVacio)
         {
             ultimoEmojiEncontrado = animal;
@@ -777,6 +877,8 @@
     {
         InvokeAsync(() =>
         {
+            DesaparecerEmojis();
+
             if (modo != Modo.Contrarreloj)
                 decimasDeSegundos++;
 
@@ -802,6 +904,23 @@
             YoDetalle.Tiempo = (decimasDeSegundos / 10F);
             StateHasChanged();
         });
+    }
+
+    void DesaparecerEmojis()
+    {
+        if (modo != Modo.Memoria)
+            return;
+
+        for (int i = 0; i < animalMostrado.Length; i++)
+        {
+            if (animalMostrado[i] >= 0 && tiempoAnimalMostrado[i] <= decimasDeSegundos)
+            {
+                animalesOcultados[i] = true;
+                animalMostrado[i] = -1;
+                tiempoAnimalMostrado[i] = 0;
+            }
+
+        }
     }
 
     void CambiarPosicionCartas()
