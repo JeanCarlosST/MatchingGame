@@ -18,7 +18,7 @@
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
                     <label class="input-group-text bg-light">Modo</label>
-                    <select class="form-select" @onchange="CambiarModo" @ref=""
+                    <select class="form-select" @onchange="CambiarModo"
                             disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Modo.Normal" selected>Normal</option>
                         <option value="@Modo.Contrarreloj">Contrarreloj</option>
@@ -261,13 +261,13 @@
     </div>
     @if (modalAbandonar)
     {
-        <Modal Titulo="Abandonar partida" Descripcion="¿Seguro que quieres abandonar la partida?"
+        <MatchingGame.Client.Shared.Modal Titulo="Abandonar partida" Descripcion="¿Seguro que quieres abandonar la partida?"
                BtnVerdeTexto="Abandonar" BtnRojoTexto="Cancelar" OnClose="@AbandonarPartida" />
     }
 
     @if (modalCambiar)
     {
-        <Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
+        <MatchingGame.Client.Shared.Modal Titulo="Cambiar modo y/o dificultad" Descripcion="@peticionCambiar"
                BtnVerdeTexto="Cambiar" BtnRojoTexto="Cancelar" OnClose="@CambiarPartida" />
     }
 
