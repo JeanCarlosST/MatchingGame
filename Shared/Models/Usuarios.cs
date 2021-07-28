@@ -9,9 +9,15 @@ namespace MatchingGame.Shared.Models
     {
         [Key]
         public long UsuarioId { get; set; }
+        
+        [Required]
         public string Email { get; set; }
+        
+        [Required]
         public string Clave { get; set; }
+        [Required]
         public string Nombres { get; set; }
+        [Required]
         public string NickName { get; set; }
 
         [NotMapped]
