@@ -59,25 +59,10 @@ namespace MatchingGame.Server.Controllers
         }
 
         [HttpPost("obtener_usuario")]
-        public async Task<ActionResult<Usuarios>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
+        public async Task<ActionResult<Usuario>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
         {
-            var respuesta = userService.ObtenerUsuarioPorJWT(jwtToken);
-            Usuarios user = null;
-
-            if(respuesta != null)
-            {
-                user = new Usuarios()
-                {
-                    UsuarioId = respuesta.UsuarioId,
-                    Nombres = respuesta.Nombre,
-                    Email = respuesta.Email,
-                    NickName = respuesta.NickName
-                };
-
-                return await Task.FromResult(user);
-            }
-
-            return await Task.FromResult(user);
+            var respuesta = userService.ObtenerUsuarioPorJWT(jwtToken);            
+            return await Task.FromResult(respuesta);
         }
 
         [HttpGet("GoogleSignIn")]

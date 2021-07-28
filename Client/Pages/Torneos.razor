@@ -104,7 +104,7 @@
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 4))
                                 {
-                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                                 }
                             </div>
                         </div>
@@ -115,7 +115,7 @@
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 3))
                                 {
-                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                    <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                                 }
                             </div>
                         </div>
@@ -124,7 +124,7 @@
                         <div class="col-12 align-items-center">
                             @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 2))
                             {
-                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                             }
                         </div>
                     </div>
@@ -133,7 +133,7 @@
                         <div class="col-12 align-items-center">
                             @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 1))
                             {
-                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
+                                <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" Yo="Yo"/>
                             }
                         </div>
                     </div>
@@ -141,12 +141,12 @@
                 </div>
             </div>
 
-            <div class="input-group d-flex justify-content-end">
+            @*<div class="input-group d-flex justify-content-end">
                 <button class="btn btn-danger bg-gradient btn-lg fw-bold" type="button"
                         @onclick="ActivarModalAbandonar">
                     Abandonar torneo
                 </button>
-            </div>
+            </div>*@
             @if (modalAbandonar)
             {
                 <MatchingGame.Client.Shared.Modal Titulo="Abandonar torneo" Descripcion="¿Seguro que quieres abandonar el torneo? Perderás automáticamente"
@@ -281,7 +281,7 @@
         {
             rondaActual = ronda;
             tabActual = 4 - CantidadRondas() + rondaActual;
-            Toast.ShowInfo("Torneo avanza a la siguite ronda", "Ronda finalizada");
+            Toast.ShowInfo("Torneo avanza a la siguiente ronda", "Ronda finalizada");
         }
 
         mostrarTablero = true;
