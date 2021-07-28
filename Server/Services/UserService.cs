@@ -17,6 +17,7 @@ namespace MatchingGame.Server.Services
         Usuario Autenticar(LoginModel usuarioLogin);
         bool RegistrarUsuario(RegisterModel usarioRegistro);
         public Usuario ObtenerUsuarioPorJWT(string jwtToken);
+        public int ValidarRegistro(RegisterModel usuarioRegistro);
     }
 
     public class UserService : IUserService
