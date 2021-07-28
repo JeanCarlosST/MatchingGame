@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
@@ -10,9 +11,13 @@ namespace MatchingGame.Shared.Models
     public class RegisterModel
     { 
         public string Nombres { get; set; }
+        
         public string Email { get; set; }
+        
         public string NickName { get; set; }
+
         public string Clave { get; set; }
+        
         public string ConfirmarClave { get; set; }
         
 

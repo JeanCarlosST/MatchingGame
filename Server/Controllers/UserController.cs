@@ -19,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using MatchingGame.Server.Entities;
 
 namespace MatchingGame.Server.Controllers
 { 
@@ -37,7 +38,7 @@ namespace MatchingGame.Server.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<Usuarios>> Login(LoginModel usuarioLogin, bool esPersistente)
+        public async Task<ActionResult<Usuario>> Login(LoginModel usuarioLogin, bool esPersistente)
         {
             var respuesta = userService.Autenticar(usuarioLogin);
             return await Task.FromResult(respuesta);
@@ -50,9 +51,15 @@ namespace MatchingGame.Server.Controllers
 
             return await Task.FromResult(respuesta);
         }
+        [HttpPost("validar")]
+        public int ValidarRegistro(RegisterModel usuarioRegistro)
+        {
+            int respuesta = userService.ValidarRegistro(usuarioRegistro);
+            return respuesta;
+        }
 
         [HttpPost("obtener_usuario")]
-        public async Task<ActionResult<Usuarios>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
+        public async Task<ActionResult<Usuario>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
         {
             var respuesta = userService.ObtenerUsuarioPorJWT(jwtToken);
             return await Task.FromResult(respuesta);

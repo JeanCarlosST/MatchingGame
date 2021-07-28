@@ -1,4 +1,5 @@
-﻿using MatchingGame.Shared.Models;
+﻿using MatchingGame.Server.Entities;
+using MatchingGame.Shared.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -13,8 +14,8 @@ namespace MatchingGame.Server
 {
     public interface IJwtUtils
     {
-        public string GenerarJWTToken(Usuarios usuario);
-        //public string ObtenerUsuarioPorJWT(string jwtToken);
+        public string GenerarJWTToken(Usuario usuario);
+        public string ObtenerUsuarioPorJWT(string jwtToken);
         public int? ValidarJWTToken(string token);
 
     }
@@ -28,7 +29,7 @@ namespace MatchingGame.Server
             this.appSettings = appSettings.Value;
         }
 
-        public string GenerarJWTToken(Usuarios usuario)
+        public string GenerarJWTToken(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
@@ -51,39 +52,39 @@ namespace MatchingGame.Server
             return tokenHandler.WriteToken(token);
         }
 
-        //public string ObtenerUsuarioPorJWT(string jwtToken)
-        //{
-        //    try
-        //    {
-        //        var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
+        public string ObtenerUsuarioPorJWT(string jwtToken)
+        {
+            try
+            {
+                var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
 
-        //        var tokenValidationParameters = new TokenValidationParameters
-        //        {
-        //            ValidateIssuerSigningKey = true,
-        //            IssuerSigningKey = new SymmetricSecurityKey(key),
-        //            ValidateIssuer = false,
-        //            ValidateAudience = false
-        //        };
-        //        var tokenHandler = new JwtSecurityTokenHandler();
-        //        SecurityToken securityToken;
+                var tokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+                var tokenHandler = new JwtSecurityTokenHandler();
+                SecurityToken securityToken;
 
-        //        var principle = tokenHandler.ValidateToken(jwtToken, tokenValidationParameters, out securityToken);
-        //        var jwtSecurityToken = (JwtSecurityToken)securityToken;
+                var principle = tokenHandler.ValidateToken(jwtToken, tokenValidationParameters, out securityToken);
+                var jwtSecurityToken = (JwtSecurityToken)securityToken;
 
-        //        if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-        //        {
-        //            var userId = principle.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //            return userId;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine("Exception : " + ex.Message);
-        //        return null;
-        //    }
+                if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var userId = principle.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    return userId;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Exception : " + ex.Message);
+                return null;
+            }
 
-        //    return null;
-        //}
+            return null;
+        }
 
         public int? ValidarJWTToken(string token)
         {

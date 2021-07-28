@@ -26,8 +26,11 @@ namespace MatchingGame.Server.DAL
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer(Properties.Resources.LocalCN);
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer(Properties.Resources.AzureCN);
+            }
+            
         }
     }
 }
