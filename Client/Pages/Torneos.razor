@@ -3,27 +3,29 @@
 @using System.Timers;
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
-@inject IToastService Toast;
+@inject IToastService Toast
+@implements IAsyncDisposable
+
 
 <div class="container">
     <div class="row d-flex justify-content-center">
 
         @if (enPantallaInicial)
         {
-        <div class="col-mg-10 col-lg-6 col-xl-4">
+            <div class="col-mg-10 col-lg-6 col-xl-4">
 
-            <div class="card d-flex justify-content-center">
-                <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(4))">
-                    Torneo 4 Participantes
-                </button>
-                <button type="button" class="btn btn-success mx-5 my-2" @onclick="@(() => BuscarTorneo(8))">
-                    Torneo 8 Participantes
-                </button>
-                <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(16))">
-                    Torneo 16 Participantes
-                </button>
+                <div class="card d-flex justify-content-center">
+                    <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(4))">
+                        Torneo 4 Participantes
+                    </button>
+                    <button type="button" class="btn btn-success mx-5 my-2" @onclick="@(() => BuscarTorneo(8))">
+                        Torneo 8 Participantes
+                    </button>
+                    <button type="button" class="btn btn-success m-5" @onclick="@(() => BuscarTorneo(16))">
+                        Torneo 16 Participantes
+                    </button>
+                </div>
             </div>
-        </div>
         }
         else if (buscandoParticipantes)
         {
@@ -137,12 +139,24 @@
 
                 </div>
             </div>
+
+            <div class="input-group d-flex justify-content-end">
+                <button class="btn btn-danger bg-gradient btn-lg fw-bold" type="button"
+                        @onclick="ActivarModalAbandonar">
+                    Abandonar torneo
+                </button>
+            </div>
+            @if (modalAbandonar)
+            {
+                <MatchingGame.Client.Shared.Modal Titulo="Abandonar torneo" Descripcion="¿Seguro que quieres abandonar el torneo? Perderás automáticamente"
+                                                  BtnVerdeTexto="Abandonar" BtnRojoTexto="Cancelar" OnClose="@AbandonarTorneo" />
+            }
         }
         else if (mostrarPartida)
         {
-            <PartidaTorneo Partida="PartidaActual" Yo="Yo" Hub="torneoHubConnection" 
-                           VerTableroBtnHandler="AlterarVistas" @ref="PartidaTorneo" 
-                           Toast="Toast"/>
+            <PartidaTorneo Partida="PartidaActual" Yo="Yo" Hub="torneoHubConnection"
+                           VerTableroBtnHandler="AlterarVistas" @ref="PartidaTorneo"
+                           Toast="Toast" />
         }
     </div>
 </div>
@@ -152,18 +166,19 @@
     private bool buscandoParticipantes;
     private bool mostrarTablero;
     private bool mostrarPartida;
+    private bool modalAbandonar;
     private string[] showTabs = new string[4]
     {
         "", "", "", ""
-    };
+        };
 
     private int cantidadJugadores;
     private int rondaActual;
     private int tabActual;
 
-    private Jugador Yo;
+    private TorneoJugador Yo;
 
-    private List<Jugador> Jugadores;
+    private List<TorneoJugador> Jugadores;
     private List<TorneoPartida> Partidas;
 
     private TorneoPartida PartidaActual;
@@ -174,11 +189,11 @@
     protected override void OnInitialized()
     {
         Random ran = new Random();
-        Jugador jugador = new Jugador();
+        TorneoJugador jugador = new TorneoJugador();
         int num = 10000 + ran.Next(90000 - 1);
         jugador.Nickname = "Guest" + num;
         this.Yo = jugador;
-        this.Jugadores = new List<Jugador>();
+        this.Jugadores = new List<TorneoJugador>();
     }
 
     protected override async Task OnInitializedAsync()
@@ -187,19 +202,19 @@
             .WithUrl(NavigationManager.ToAbsoluteUri("/torneo_hub"))
             .Build();
 
-        torneoHubConnection.On<List<Jugador>>("RecibirJugadores", RecibirJugadores);
+        torneoHubConnection.On<List<TorneoJugador>>("RecibirJugadores", RecibirJugadores);
         torneoHubConnection.On<List<TorneoPartida>>("IniciarTorneo", IniciarTorneo);
         torneoHubConnection.On<List<TorneoPartida>>("ActualizarPartidas", ActualizarPartidas);
         torneoHubConnection.On<TorneoPartida>("RecibirMovimiento", RecibirMovimiento);
-        torneoHubConnection.On("Nollegara", () =>
+        torneoHubConnection.On("RefrescarTorneo", () =>
         {
-            Console.WriteLine("No sirve coño");
+            StateHasChanged();
         });
 
         await torneoHubConnection.StartAsync();
     }
 
-    void RecibirJugadores(List<Jugador> jugadores)
+    void RecibirJugadores(List<TorneoJugador> jugadores)
     {
         Jugadores = jugadores;
         StateHasChanged();
@@ -248,7 +263,7 @@
         foreach (var p in partidas)
             Console.WriteLine(p);
 
-        if(rondaActual < ronda)
+        if (rondaActual < ronda)
         {
             rondaActual = ronda;
             tabActual = 4 - CantidadRondas() + rondaActual;
@@ -292,10 +307,23 @@
         mostrarPartida = !mostrarPartida;
         mostrarTablero = !mostrarTablero;
 
-        if(mostrarPartida)
+        if (mostrarPartida)
         {
             ActualizarTableroRonda();
         }
+    }
+
+    void ActivarModalAbandonar()
+    {
+        modalAbandonar = true;
+    }
+
+    void AbandonarTorneo(bool abandonar)
+    {
+        if (abandonar)
+            NavigationManager.NavigateTo("/");
+
+        modalAbandonar = false;
     }
 
     void ActualizarTableroRonda()
@@ -306,7 +334,6 @@
                 showTabs[i] = "show active";
             else
                 showTabs[i] = "";
-            Console.WriteLine(showTabs[i]);
         }
     }
 
@@ -325,5 +352,10 @@
             return 4;
         }
         return -1;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await torneoHubConnection.DisposeAsync();
     }
 }

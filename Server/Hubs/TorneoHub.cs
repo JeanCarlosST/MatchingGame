@@ -22,7 +22,25 @@ namespace MatchingGame.Server.Hubs
             return base.OnConnectedAsync();
         }
 
-        public async Task RecibirPeticion(Jugador jugador, string peticionStr)
+        public override async Task<Task> OnDisconnectedAsync(Exception exception)
+        {
+            var torneo = Manejador.MarcarJugadorAusente(Context.ConnectionId);
+
+            if(torneo != null && !torneo.Iniciado)
+            {
+                foreach (var jug in torneo.Jugadores)
+                    await Clients.Client(jug.ConnectionId).SendAsync("RecibirJugadores", torneo.Jugadores);
+            }
+
+            return base.OnDisconnectedAsync(exception);
+        }
+
+        public void JugadorAbandonado()
+        {
+            Manejador.MarcarJugadorAbandonado(Context.ConnectionId);
+        }
+
+        public async Task RecibirPeticion(TorneoJugador jugador, string peticionStr)
         {
             Peticion peticion = new Peticion(jugador, Context.ConnectionId, peticionStr);
             
@@ -87,7 +105,7 @@ namespace MatchingGame.Server.Hubs
             foreach(var jugador in torneo.Jugadores)
             {
                 await Clients.Client(jugador.ConnectionId).SendAsync("ActualizarPartidas", torneo.Partidas);
-                await Clients.Client(jugador.ConnectionId).SendAsync("Nollegara");
+                await Clients.Client(jugador.ConnectionId).SendAsync("RefrescarTorneo");
 
             }
         }

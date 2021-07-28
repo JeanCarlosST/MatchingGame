@@ -28,8 +28,7 @@ namespace MatchingGame.Server.DAL
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("Server=localhost;Database=MatchingGameDB;User=sa;Password=hpt123456789;Trusted_Connection=False;");
-                //optionsBuilder.UseSqlServer("Data Source=localhost;Initial Catalog=MatchingGameDB;Persist Security Info=True;User=sa;Password=hpt123456789;");
+                optionsBuilder.UseSqlServer(Properties.Resources.AzureCN);
             }
             
         }

@@ -13,8 +13,8 @@ namespace MatchingGame.Shared
         public DateTime FechaTerminado { get; set; }
         public int RondaActual { get; set; }
         public int CantMaxJugadores { get; set; }
-        public List<Jugador> Jugadores { get; set; }
-        public List<Jugador> JugadoresSigteRonda { get; set; }
+        public List<TorneoJugador> Jugadores { get; set; }
+        public List<TorneoJugador> JugadoresSigteRonda { get; set; }
         public List<TorneoPartida> Partidas { get; set; }
         public bool Iniciado { get; set; }
         public bool Terminado { get; set; }
@@ -24,8 +24,8 @@ namespace MatchingGame.Shared
             FechaCreacion = DateTime.Now;
             CantMaxJugadores = cantJugs;
             RondaActual = -1;
-            Jugadores = new List<Jugador>();
-            JugadoresSigteRonda = new List<Jugador>();
+            Jugadores = new List<TorneoJugador>();
+            JugadoresSigteRonda = new List<TorneoJugador>();
         }
 
         public void Iniciar()
@@ -33,7 +33,7 @@ namespace MatchingGame.Shared
             Iniciado = true;
             FechaIniciado = DateTime.Now;
             Partidas = new List<TorneoPartida>();
-            JugadoresSigteRonda = new List<Jugador>(Jugadores);
+            JugadoresSigteRonda = new List<TorneoJugador>(Jugadores);
             RondaActual++;
 
             CrearPartidas();
@@ -50,6 +50,8 @@ namespace MatchingGame.Shared
                     JugadorDos = JugadoresSigteRonda[(i * 2) + 1],
                     Iniciada = true
                 };
+                ((TorneoJugador)partida.JugadorUno).Estado = 1;
+                ((TorneoJugador)partida.JugadorDos).Estado = 1;
                 Partidas.Add(partida);
             }
 
@@ -90,12 +92,12 @@ namespace MatchingGame.Shared
             }
         }
 
-        public void AgregarJugador(Jugador jugador)
+        public void AgregarJugador(TorneoJugador jugador)
         {
             Jugadores.Add(jugador);
         }
 
-        public bool JugadorExiste(Jugador jugador)
+        public bool JugadorExiste(TorneoJugador jugador)
         {
             return Jugadores.Find(j => jugador.Nickname.Equals(j.Nickname)) != null;
         }
@@ -108,6 +110,11 @@ namespace MatchingGame.Shared
         public TorneoPartida(Modo modo, Dificultad dificultad, int ronda) : base(modo, dificultad)
         {
             this.Ronda = ronda;
+        }
+
+        public bool ContieneJugador(string connectionId)
+        {
+            return JugadorUno.ConnectionId == connectionId || JugadorDos.ConnectionId == connectionId;
         }
 
         public override bool Equals(object obj)
@@ -155,6 +162,31 @@ namespace MatchingGame.Shared
                 return $"PartidaGanador: {ganador}, Ronda: {Ronda}";
             else
                 return $"Partida; J1: {JugadorUno.Nickname}, J2: {JugadorDos.Nickname}";
+        }
+    }
+
+    public class TorneoJugador : Jugador
+    {
+        public int Estado { get; set; } // -1 Abandonado, 0 En espera, 1 Jugando, 2 Ausente
+        public DateTime? TiempoAusente { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() != typeof(TorneoJugador))
+                return false;
+
+            TorneoJugador jugador = (TorneoJugador)obj;
+
+            if (ConnectionId != jugador.ConnectionId)
+                return false;
+
+            if (Nickname != jugador.Nickname)
+                return false;
+
+            if (Victorias != jugador.Victorias)
+                return false;
+
+            return true;
         }
     }
 }

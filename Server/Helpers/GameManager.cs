@@ -66,11 +66,11 @@ namespace MatchingGame.Server.Helpers
                     Torneos.Add(torneo);
                 }
 
-                Jugador jugador = peticion.Jugador;
+                TorneoJugador jugador = (TorneoJugador)peticion.Jugador;
 
                 if(!torneo.JugadorExiste(jugador))
                 {
-                    torneo.AgregarJugador(peticion.Jugador);
+                    torneo.AgregarJugador(jugador);
 
                     if (torneo.CantMaxJugadores == torneo.Jugadores.Count)
                         torneo.Iniciar();
@@ -155,7 +155,7 @@ namespace MatchingGame.Server.Helpers
 
             partida = torneo.Partidas.Find(p => p.Equals(partida));
 
-            Jugador ganador = partida.Terminar();
+            TorneoJugador ganador = (TorneoJugador)partida.Terminar();
             if (ganador != null)
             {
                 torneo.JugadoresSigteRonda.Add(ganador);
@@ -211,6 +211,54 @@ namespace MatchingGame.Server.Helpers
             }
 
             return null;
+        }
+
+        public Torneo BuscarTorneoPorConnectionId(string connectionId)
+        {
+            foreach (var torneo in Torneos)
+            {
+                if (torneo.Jugadores.Any(j => j.ConnectionId == connectionId))
+                    return torneo;
+            }
+
+            return null;
+        }
+
+        public void MarcarJugadorAbandonado(string connectionId)
+        {
+            var torneo = BuscarTorneoPorConnectionId(connectionId);
+            var jugador = torneo.Jugadores.First(j => j.ConnectionId == connectionId);
+            jugador.Estado = -1;
+        }
+
+        public Torneo MarcarJugadorAusente(string connectionId)
+        {
+            var torneo = BuscarTorneoPorConnectionId(connectionId);
+            TorneoJugador jugador = null;
+
+            if(torneo != null)
+            {
+                jugador = torneo.Jugadores.First(j => j.ConnectionId == connectionId);
+
+                if(torneo.Iniciado)
+                {
+                    jugador.Estado = 2;
+                    jugador.TiempoAusente = DateTime.Now;
+                }
+                else
+                {
+                    RemoverJugadorDeTorneo(jugador, torneo);
+                }
+            }
+
+            return torneo;
+        }
+
+        public void RemoverJugadorDeTorneo(TorneoJugador jugador, Torneo torneo)
+        {
+            torneo.Jugadores.Remove(jugador);
+            if (torneo.Jugadores.Count == 0 && !torneo.Iniciado)
+                Torneos.Remove(torneo);
         }
 
         public Partida PerderPartida(Partida partida, Jugador jugador)

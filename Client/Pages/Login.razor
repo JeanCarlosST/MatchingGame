@@ -99,7 +99,7 @@
     {
         iniciandoSesion = true;
         var usuarioDevuelto = await UserService.LoginAsync(usuarioLogin);
-        if(!String.IsNullOrEmpty(usuarioLogin.Email))
+        if(usuarioDevuelto != null)
         {
             await ((CustomAuthenticationStateProvider)AuthStateProvider).MarcarUsuarioLogeado(usuarioDevuelto);
             await Task.Delay(1000);

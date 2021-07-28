@@ -12,7 +12,7 @@ namespace MatchingGame.Shared
         public int UsuarioId { get; set; }
         public string Nickname { get; set; }
         public int Victorias { get; set; }
-
+        
         public override bool Equals(object obj)
         {
             if (obj.GetType() != typeof(Jugador))
