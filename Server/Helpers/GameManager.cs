@@ -232,16 +232,28 @@ namespace MatchingGame.Server.Helpers
             {
                 partida = Partidas.Find(p => p.Equals(partida));
 
-                if (partida.JugadorUno.Nickname == jugador.Nickname && partida.JugadorUno.ConnectionId == jugador.ConnectionId)
-                    partida.JugadorUnoDetalle = jugDetalle;
+                if(partida != null)
+                {
+                    if (partida.JugadorUno.Nickname == jugador.Nickname && partida.JugadorUno.ConnectionId == jugador.ConnectionId)
+                        partida.JugadorUnoDetalle = jugDetalle;
 
-                else if (partida.JugadorDos.Nickname == jugador.Nickname && partida.JugadorDos.ConnectionId == jugador.ConnectionId)
-                    partida.JugadorDosDetalle = jugDetalle;
+                    else if (partida.JugadorDos.Nickname == jugador.Nickname && partida.JugadorDos.ConnectionId == jugador.ConnectionId)
+                        partida.JugadorDosDetalle = jugDetalle;
+                }
 
                 return partida;
             }
 
             return null;
+        }
+
+        public void ReiniciarPartida(Partida partida)
+        {
+            partida = Partidas.Find(p => p.Equals(partida));
+
+            //TODO Guardar partida en la base de datos
+
+            partida.Reiniciar();
         }
     }
 }

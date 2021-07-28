@@ -18,7 +18,8 @@
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
                     <label class="input-group-text bg-light">Modo</label>
-                    <select class="form-select" @onchange="CambiarModo" disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
+                    <select class="form-select" @onchange="CambiarModo" @ref=""
+                            disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Modo.Normal" selected>Normal</option>
                         <option value="@Modo.Contrarreloj">Contrarreloj</option>
                         <option value="@Modo.UnaVida">Una vida</option>
@@ -31,7 +32,8 @@
             <div class="col-sm-4 mb-3 mb-sm-0">
                 <div class="input-group">
                     <label class="input-group-text bg-light">Dificultad</label>
-                    <select class="form-select" @onchange="CambiarDificultad" disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
+                    <select class="form-select" @onchange="CambiarDificultad" 
+                            disabled="@(partidaIniciada || jugadorDesconectado || buscandoOponente)">
                         <option value="@Dificultad._4x4" selected>4 x 4</option>
                         <option value="@Dificultad._4x5">4 x 5</option>
                         <option value="@Dificultad._4x6">4 x 6</option>
@@ -84,7 +86,7 @@
 
             <div class="col-12 col-md-6">
                 <div class="row position-relative">
-                    @if (Oponente != null && !partidaIniciada)
+                    @if (Oponente != null && (!partidaIniciada && !partidaTerminada))
                     {
                         <button type="button" class="btn btn-success btn-lg w-50 bg-gradient position-absolute top-50 start-50
                                         translate-middle fs-2 px-4 rounded-pill border border-1 border-dark" style="z-index: 1;"
@@ -275,8 +277,6 @@
 {
     const string CaracterVacio = "\u200D";
 
-    bool partidaIniciada;
-
     Modo modo = Modo.Normal;
     Dificultad dificultad = Dificultad._4x4;
 
@@ -306,6 +306,7 @@
 
     int PartidaId;
     bool buscandoOponente;
+    bool partidaIniciada;
     bool partidaTerminada;
     bool partidaEncontrada;
     bool jugadorDesconectado;
@@ -342,7 +343,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Yo.Nickname = await ObtenerNicknameUsuario();
+        Random ran = new Random();
+        Yo.Nickname = "Guest" + (10000 + ran.Next(90000 - 1));//await ObtenerNicknameUsuario();
         await ConnectToHub();
     }
 
@@ -376,14 +378,14 @@
 
         if (Partida.JugadorUno.Nickname.Equals(Yo.Nickname))
         {
-            Yo.ConnectionId = Partida.JugadorUno.ConnectionId;
+            Yo = Partida.JugadorUno;
             YoDetalle = Partida.JugadorUnoDetalle;
             Oponente = Partida.JugadorDos;
             OponenteDetalle = Partida.JugadorDosDetalle;
         }
         else
         {
-            Yo.ConnectionId = Partida.JugadorDos.ConnectionId;
+            Yo = Partida.JugadorDos;
             YoDetalle = Partida.JugadorDosDetalle;
             Oponente = Partida.JugadorUno;
             OponenteDetalle = Partida.JugadorUnoDetalle;
@@ -394,7 +396,6 @@
             oponenteJugando = false;
             mostrarResultadosOponente = true;
         }
-        Console.WriteLine($"{Partida.JugadorUnoDetalle.ParesEncontrados} {Partida.JugadorDosDetalle.ParesEncontrados}");
 
         MostrarToastGanador();
 
@@ -413,6 +414,7 @@
             {
                 Toast.ShowError("Perdiste la partida :(", "Resultado");
             }
+            partidaTerminada = false;
         }
     }
 
@@ -472,6 +474,8 @@
         {
             CambiarModo(peticionModo);
             CambiarDificultad(peticionDificultad);
+            YoDetalle = new();
+            OponenteDetalle = new();
             Toast.ShowSuccess("El modo y dificultad fueron cambiados", "Respuesta de cambio");
         }
         else
@@ -485,6 +489,7 @@
     void OponenteJugando()
     {
         oponenteJugando = true;
+        OponenteDetalle = new();
     }
 
     async Task BuscarOponente()
@@ -504,15 +509,27 @@
 
     async Task PeticionCambiarPartida()
     {
+        if (modo == peticionModo && dificultad == peticionDificultad)
+        {
+            Toast.ShowError("Selecciona un modo y/o dificultad diferente", "Petición inválida");
+            return;
+        }
+
         if (oponenteJugando)
         {
             Toast.ShowError("Tu oponente está jugando. Espera que termine", "Petición inválida");
             return;
         }
 
-        if (OponenteDetalle.Puntos != 0 && !partidaIniciada)
+        if (OponenteDetalle.Puntos != 0 && partidaIniciada && !Partida.Terminada)
         {
             Toast.ShowError("Tu oponente ya ha jugado, juega para poder cambiar", "Petición inválida");
+            return;
+        }
+
+        if(!partidaIniciada && partidaTerminada)
+        {
+            Toast.ShowError("Espera que tu oponente termine de jugar", "Petición inválida");
             return;
         }
 
@@ -550,6 +567,8 @@
 
         ultimoEmojiEncontrado = CaracterVacio;
         ultimoAnimalIndice = -1;
+
+        YoDetalle = new();
     }
 
     void ReiniciarPartida()
@@ -585,6 +604,8 @@
         {
             CambiarModo(peticionModo);
             CambiarDificultad(peticionDificultad);
+            YoDetalle = new();
+            OponenteDetalle = new();
         }
 
         modalCambiar = false;
@@ -742,6 +763,7 @@
     {
         temporizador.Stop();
         partidaIniciada = false;
+        partidaTerminada = true;
     }
 
     int ObtenerTiempo()

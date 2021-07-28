@@ -49,7 +49,8 @@ namespace MatchingGame.Server.Hubs
                 Partida partida = Manejador.EncontrarPartida(peticion);
                 if (partida != null)
                 {
-                    partida.Iniciada = true;
+                    //partida.Iniciada = true;
+                    partida.Fecha = DateTime.Now;
                     EnviarPartidaAMetodo(partida, "RecibirPartida");
                 }
             }
@@ -64,10 +65,13 @@ namespace MatchingGame.Server.Hubs
                 if (partida != null)
                 {
                     partida.Terminar();
-                    //EnviarPartidaAMetodo(partida, "RecibirMovimiento");
 
                     EnviarPartidaAMetodo(partida, "RecibirMovimiento");
-                    //if (partida.Terminada)
+                    if (partida.Terminada)
+                    {
+                        Manejador.ReiniciarPartida(partida);
+                        //partida.Reiniciar();
+                    }
                 }
             }
         }
@@ -85,8 +89,11 @@ namespace MatchingGame.Server.Hubs
                     partida.Terminar();
                     
                     if (partida.Terminada)
+                    {
                         EnviarPartidaAMetodo(partida, "RecibirMovimiento");
-                    
+                        Manejador.ReiniciarPartida(partida);
+                        //partida.Reiniciar();
+                    }
                 }
             }
         }
@@ -99,18 +106,21 @@ namespace MatchingGame.Server.Hubs
             Task.WaitAll(new[] { j1, j2 });
         }
 
-        private async Task JugadorIniciaPartida(Jugador jugador)
+        public async Task JugadorIniciaPartida(Jugador jugador)
         {
             if (jugador.ConnectionId == Context.ConnectionId)
             {
                 var partida = Manejador.BuscarPartidaPorJugadorId(jugador.ConnectionId);
                 if (partida != null)
                 {
+                    partida.Iniciada = true;
                     if (partida.JugadorUno.ConnectionId == jugador.ConnectionId)
                         await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("OponenteJugando");
 
                     else if (partida.JugadorDos.ConnectionId == jugador.ConnectionId)
                         await Clients.Client(partida.JugadorUno.ConnectionId).SendAsync("OponenteJugando");
+
+                    EnviarPartidaAMetodo(partida, "RecibirMovimiento");
                 }
             }
         }
@@ -139,11 +149,8 @@ namespace MatchingGame.Server.Hubs
                 if (partida != null)
                 {
                     if (cambio)
-                    {
-                        partida.Modo = modo;
-                        partida.Dificultad = dificultad;
-                    }
-
+                        partida.CambiarModoYDificultad(modo, dificultad);
+                        
                     if (partida.JugadorUno.ConnectionId == jugador.ConnectionId)
                     {
                        await Clients.Client(partida.JugadorDos.ConnectionId).SendAsync("RespuestaPeticionCambio", cambio);

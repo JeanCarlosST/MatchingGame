@@ -82,6 +82,21 @@ namespace MatchingGame.Shared
             return null;
         }
 
+        public void Reiniciar()
+        {
+            JugadorUnoDetalle = new();
+            JugadorDosDetalle = new();
+            Iniciada = false;
+            Terminada = false;
+        }
+
+        public void CambiarModoYDificultad(Modo modo, Dificultad dificultad)
+        {
+            Modo = modo;
+            Dificultad = dificultad;
+            ParesTotales = Emojis.ObtenerParesTotales(dificultad);
+        }
+
         public override bool Equals(object obj)
         {
             if (obj.GetType() != typeof(Partida))
@@ -104,8 +119,8 @@ namespace MatchingGame.Shared
             if (ParesTotales != partida.ParesTotales)
                 return false;
 
-            if (Iniciada != partida.Iniciada)
-                return false;
+            //if (Iniciada != partida.Iniciada)
+            //    return false;
 
             if (Terminada != partida.Terminada)
                 return false;

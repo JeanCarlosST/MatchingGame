@@ -15,99 +15,101 @@
                         </span>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="col d-flex justify-content-center m-2 align-items-center">
-                        <form>
-                            <div class="row mb-3 justify-content-center">
-                                <div class="col">
-                                    <span class="input-group-text justify-content-center">
-                                        Victorias 1vs1:
-                                    </span>
-                                    <span class="input-group-text justify-content-center bg-light">
-                                        @Usuario.Victorias1v1
-                                    </span>
-                                </div>
+                <div class="row p-0">
 
-                                <div class="col ">
-                                    <span class="input-group-text justify-content-center">
-                                        Victorias Torneos:
-                                    </span>
-                                    <span class="input-group-text justify-content-center bg-light">
-                                        @Usuario.VictoriasTorneos
-                                    </span>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col">
-                                    <span class="input-group-text justify-content-center">
-                                        1vs1 Jugados:
-                                    </span>
-                                    <span class="input-group-text justify-content-center bg-light">
-                                        @Usuario.Victorias1v1
-                                    </span>
-                                </div>
+                    <div class="col  justify-content-center m-2 align-items-center">
 
-                                <div class="col ">
-                                    <span class="input-group-text justify-content-center">
-                                        Torneos Jugados:
-                                    </span>
-                                    <span class="input-group-text justify-content-center bg-light">
-                                        @Usuario.VictoriasTorneos
-                                    </span>
-                                </div>
+                        <div class="row  mb-3 justify-content-center">
+                            <div class="col">
+                                <label class="row justify-content-center fw-bold">
+                                    🏆  1vs1:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.Victorias1v1
+                                </label>
                             </div>
-                            <div class="col justify-content-center d-flex mt-1 ">
-                                <button type="button" class="input-group-text btn btn-@clase " @onclick="()=> { Estadisticas = !Estadisticas;  }">
-                                    @if (Estadisticas)
-                                    {<span>Amigos</span> }
-                                    else
-                                    { <span>Estadisticas</span>}
-                                </button>
+
+                            <div class="col ">
+                                <label class="row justify-content-center fw-bold">
+                                    🏆 Torneos:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.VictoriasTorneos
+                                </label>
                             </div>
-                        </form>
+                        </div>
+
+                        <div class="row row mb-3 justify-content-center">
+                            <div class="col">
+                                <label class="row justify-content-center fw-bold">
+                                    1vs1 Jugados:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.Victorias1v1
+                                </label>
+                            </div>
+                            <div class="col ">
+                                <label class="row justify-content-center fw-bold">
+                                    Torneos Jugados:
+                                </label>
+                                <label class="row justify-content-center ">
+                                    @Usuario.VictoriasTorneos
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col d-flex justify-content-center">
+                            <button type="button" class="row btn btn-@clase  " @onclick="()=> { Estadisticas = !Estadisticas;  }">
+                                @if (Estadisticas)
+                                {<span>Amigos</span> }
+                                else
+                                { <span>Estadisticas</span>}
+                            </button>
+                        </div>
                     </div>
-                    <div class="col bg-info ">
+
+                    <div class="col bg-info p-0">
                         @if (Estadisticas)
                         {
                             <div class="card-header">
-                                <h4>Mejores Tiempos</h4>
+                                <h6 class="fw-bold">Mejores Tiempos</h6>
                             </div>
-                            <table class="table table-striped ">
+                            <table class="table table-borderless ">
                                 <thead>
                                     <tr>
                                         <th> </th>
-                                        <th>4x4</th>
-                                        <th>4x5</th>
-                                        <th>4x6</th>
-                                        <th>4x7</th>
-                                        <th>4x8</th>
-                                        <th>6x6</th>
-                                        <th>6x7</th>
-                                        <th>8x8</th>
+                                        <th class="fw-bold">4x4</th>
+                                        <th class="fw-bold">4x5</th>
+                                        <th class="fw-bold">4x6</th>
+                                        <th class="fw-bold">4x7</th>
+                                        <th class="fw-bold">4x8</th>
+                                        <th class="fw-bold">6x6</th>
+                                        <th class="fw-bold">6x7</th>
+                                        <th class="fw-bold">8x8</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-transparent">
                                     <tr>
-                                        <td>Normal</td>
+                                        <td class="fw-bold">Normal</td>
                                     </tr>
                                     <tr>
-                                        <td>Una Vida</td>
+                                        <td class="fw-bold">Una Vida</td>
                                     </tr>
                                     <tr>
-                                        <td>Cambiante</td>
+                                        <td class="fw-bold">Cambiante</td>
                                     </tr>
                                     <tr>
-                                        <td>Memoria</td>
+                                        <td class="fw-bold">Memoria</td>
                                     </tr>
                                     <tr>
-                                        <td>Contrareloj</td>
+                                        <td class="fw-bold">Contrareloj</td>
                                     </tr>
                                 </tbody>
                             </table>
                         }
                         else
                         {
-                            <div class="btn-group shadow-sm" role="group">
+                            <div class="btn-group shadow-sm d-flex justify-content-center" role="group">
                                 <ul class="nav nav-pills d-flex justify-content-center" role="tablist">
                                     <li class="nav-item bg-info" role="presentation">
                                         <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#amigos"
@@ -125,27 +127,27 @@
                             </div>
                             <div class="tab-content d-flex justify-content-center" id="myTabContent">
                                 <div class="tab-pane fade show active" id="amigos" role="tabpanel" aria-labelledby="amigos-tab">
-                                    <table class="table table-striped ">
+                                    <table class="table table-borderless ">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
                                                 <th>Usuario</th>
-                                                <th>Victorias 1vs1</th>
-                                                <th>Victorias Torneos</th>
+                                                <th>🏆 1vs1</th>
+                                                <th>🏆 Torneos</th>
                                                 <th></th>
                                             </tr>
                                         </thead>
                                         <tbody class="bg-transparent">
                                             @foreach (tempUser user in Usuario.ListaAmigos)
                                             {
-                                                <tr>
+                                                <tr> 
                                                     <td><i class="oi oi-person"></i></td>
                                                     <td><a href="/userprofile/@user.id">@user.NickName</a></td>
                                                     <td>@user.Victorias1v1</td>
-                                                    <td>@user.VictoriasTorneos</td>
-                                                    <td class="text-center align-baseline">
-                                                        <button type="button" class=" bg-danger small">
-                                                            x
+                                                    <td >@user.VictoriasTorneos</td>
+                                                    <td class="p-0">
+                                                        <button type="button" class="btn bg-danger p-0">
+                                                            <span class="oi oi-x p-1" />
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -154,35 +156,32 @@
                                     </table>
                                 </div>
                                 <div class="tab-pane fade" id="solicitudes" role="tabpanel" aria-labelledby="solicitudes-tab">
-
-                                    <table class="table table-striped ">
+                                    <table class="table table-borderless ">
                                         <thead>
                                             <tr>
                                                 <th>#</th>
                                                 <th>Usuario</th>
-                                                <th>Victorias 1vs1</th>
-                                                <th>Victorias Torneos</th>
+                                                <th>🏆 1vs1</th>
+                                                <th>🏆 Torneos</th>
                                                 <th></th>
                                                 <th></th>
                                             </tr>
                                         </thead>
-                                        <tbody class="bg-info">
+                                        <tbody class="bg-transparent">
                                             @foreach (tempUser user in Usuario.Solicitudes)
                                             {
                                                 <tr>
-                                                    <td>+</td>
+                                                    <td><span class="oi oi-plus" /></td>
                                                     <td><a href="/userprofile/@user.id">@user.NickName</a></td>
                                                     <td>@user.Victorias1v1</td>
                                                     <td>@user.VictoriasTorneos</td>
 
-                                                    <td class="text-center align-baseline">
-                                                        <button type="button" class=" btn-primary small">
-                                                            +
+                                                    <td class=" p-0">
+                                                        <button type="button" class="col btn btn-primary p-0">
+                                                            <span class="oi oi-plus p-1" />
                                                         </button>
-                                                    </td>
-                                                    <td class="text-center align-baseline">
-                                                        <button type="button" class=" bg-danger small">
-                                                            x
+                                                        <button type="button" class="col btn bg-danger p-0">
+                                                            <span class="oi oi-x p-1" />
                                                         </button>
                                                     </td>
                                                 </tr>
