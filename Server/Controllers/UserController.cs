@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using MatchingGame.Shared.Models;
 using MatchingGame.Server.Services;
+using MatchingGame.Server.Entities;
 
 namespace MatchingGame.Server.Controllers
 { 
@@ -27,7 +28,7 @@ namespace MatchingGame.Server.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<Usuarios>> Login(LoginModel usuarioLogin, bool esPersistente)
+        public async Task<ActionResult<Usuario>> Login(LoginModel usuarioLogin, bool esPersistente)
         {
             var respuesta = userService.Autenticar(usuarioLogin);
             return await Task.FromResult(respuesta);
@@ -42,7 +43,7 @@ namespace MatchingGame.Server.Controllers
         }
 
         [HttpPost("obtener_usuario")]
-        public async Task<ActionResult<Usuarios>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
+        public async Task<ActionResult<Usuario>> ObtenerUsuarioPorJwt([FromBody]string jwtToken)
         {
             var respuesta = userService.ObtenerUsuarioPorJWT(jwtToken);
             return await Task.FromResult(respuesta);

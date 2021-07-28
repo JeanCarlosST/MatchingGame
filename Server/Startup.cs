@@ -35,7 +35,8 @@ namespace MatchingGame.Server
             services.AddControllersWithViews();
             services.AddRazorPages();
             services.AddSignalR();
-            services.AddDbContext<Contexto>();
+            services.AddDbContext<Context>();
+            services.AddScoped<IPlayerService, PlayerService>();
             services.AddResponseCompression(opts =>
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -98,7 +99,7 @@ namespace MatchingGame.Server
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
             var serviceProvider = app.ApplicationServices.CreateScope().ServiceProvider;
-            var appDBContext = serviceProvider.GetRequiredService<Contexto>();
+            var appDBContext = serviceProvider.GetRequiredService<Context>();
             var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
             app.UseResponseCompression();
             if (env.IsDevelopment())
