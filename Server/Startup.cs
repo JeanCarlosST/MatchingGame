@@ -2,6 +2,8 @@ using MatchingGame.Server.DAL;
 using MatchingGame.Server.Helpers;
 using MatchingGame.Server.Hubs;
 using MatchingGame.Server.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,8 +16,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MatchingGame.Server
 {
@@ -47,11 +52,11 @@ namespace MatchingGame.Server
 
             services.AddAuthentication(options =>
             {
-                //options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            //.AddCookie(options => { options.LoginPath = "/user/notauthorized"; })
+            .AddCookie()
             .AddJwtBearer(jwtBearerOptions =>
             {
                 jwtBearerOptions.RequireHttpsMetadata = true;
@@ -75,11 +80,13 @@ namespace MatchingGame.Server
             {
                 facebookOptions.AppId = Configuration["Authentication:Facebook:AppId"];
                 facebookOptions.AppSecret = Configuration["Authentication:Facebook:AppSecrete"];
+
             })
             .AddGoogle(googleOptions =>
             {
                 googleOptions.ClientId = Configuration["Authentication:Google:ClientId"];
                 googleOptions.ClientSecret = Configuration["Authentication:Google:ClientSecret"];
+                googleOptions.SaveTokens = true;
             });
             services.AddLogging(logging =>
             {
@@ -132,5 +139,6 @@ namespace MatchingGame.Server
                 endpoints.MapFallbackToFile("index.html");
             });
         }
+
     }
 }

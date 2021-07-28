@@ -40,7 +40,7 @@ namespace MatchingGame.Client
         {
             var claimsIdentity = new ClaimsIdentity();
 
-            if(usuario.Email != null)
+            if(usuario?.Email != null)
             {
                 claimsIdentity = new ClaimsIdentity(new []
                 {

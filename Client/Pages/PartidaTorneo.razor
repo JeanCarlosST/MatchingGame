@@ -185,7 +185,7 @@
             GenerarTableroVacio();
     }
 
-    public void RefrescarDatosPartida(Partida partida = null)
+    public void RefrescarDatosPartida(TorneoPartida partida = null)
     {
         if (partida != null)
             this.Partida = partida;
@@ -236,7 +236,7 @@
         return false;
     }
 
-    void SeleccionarCasilla(string animal, int index)
+    async Task SeleccionarCasilla(string animal, int index)
     {
         if (ultimoEmojiEncontrado == CaracterVacio)
         {
@@ -255,7 +255,7 @@
 
             YoDetalle.Puntos += CalcularPuntos();
             YoDetalle.ParesEncontrados++;
-            MarcarParejaEncontrada().Wait();
+            await MarcarParejaEncontrada();
 
             if (YoDetalle.ParesEncontrados >= listaEmojis.Count / 2)
             {

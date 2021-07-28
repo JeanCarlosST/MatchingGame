@@ -52,39 +52,39 @@ namespace MatchingGame.Server
             return tokenHandler.WriteToken(token);
         }
 
-        public string ObtenerUsuarioPorJWT(string jwtToken)
-        {
-            try
-            {
-                var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
+        //public string ObtenerUsuarioPorJWT(string jwtToken)
+        //{
+        //    try
+        //    {
+        //        var key = Encoding.ASCII.GetBytes(appSettings.SecretKey);
 
-                var tokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false
-                };
-                var tokenHandler = new JwtSecurityTokenHandler();
-                SecurityToken securityToken;
+        //        var tokenValidationParameters = new TokenValidationParameters
+        //        {
+        //            ValidateIssuerSigningKey = true,
+        //            IssuerSigningKey = new SymmetricSecurityKey(key),
+        //            ValidateIssuer = false,
+        //            ValidateAudience = false
+        //        };
+        //        var tokenHandler = new JwtSecurityTokenHandler();
+        //        SecurityToken securityToken;
 
-                var principle = tokenHandler.ValidateToken(jwtToken, tokenValidationParameters, out securityToken);
-                var jwtSecurityToken = (JwtSecurityToken)securityToken;
+        //        var principle = tokenHandler.ValidateToken(jwtToken, tokenValidationParameters, out securityToken);
+        //        var jwtSecurityToken = (JwtSecurityToken)securityToken;
 
-                if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var userId = principle.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                    return userId;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Exception : " + ex.Message);
-                return null;
-            }
+        //        if (jwtSecurityToken != null && jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        //        {
+        //            var userId = principle.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //            return userId;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("Exception : " + ex.Message);
+        //        return null;
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         public int? ValidarJWTToken(string token)
         {
@@ -105,7 +105,7 @@ namespace MatchingGame.Server
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
-                var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
+                var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "nameid").Value);
 
                 return userId;
             }

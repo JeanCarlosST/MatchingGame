@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MatchingGame.Server.Migrations
 {
     [DbContext(typeof(Contexto))]
-    [Migration("20210726185942_Inicial")]
+    [Migration("20210728011629_Inicial")]
     partial class Inicial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

@@ -63,7 +63,7 @@
                     @if (cantidadJugadores == 16)
                     {
                         <li class="nav-item " role="presentation">
-                            <button id="OctavosTab" type="button" class="nav-link" aria-selected="false"
+                            <button id="OctavosTab" type="button" class="nav-link @showTabs[0]" aria-selected="false"
                                     data-bs-toggle="tab" role="tab" data-bs-target="#divOctavos">
                                 <span class="fw-bold fs-2 text-dark">Octavos</span>
                             </button>
@@ -72,20 +72,20 @@
                     @if (cantidadJugadores >= 8)
                     {
                         <li class="nav-item " role="presentation">
-                            <button id="CuartosTab" type="button" class="nav-link" aria-selected="false"
+                            <button id="CuartosTab" type="button" class="nav-link @showTabs[1]" aria-selected="false"
                                     data-bs-toggle="tab" role="tab" data-bs-target="#divCuartos">
                                 <span class="fw-bold fs-2 text-dark">Cuartos</span>
                             </button>
                         </li>
                     }
                     <li class="nav-item " role="presentation">
-                        <button id="SemifinalesTab" type="button" class="nav-link active" aria-selected="true"
+                        <button id="SemifinalesTab" type="button" class="nav-link @showTabs[2]" aria-selected="true"
                                 data-bs-toggle="tab" role="tab" data-bs-target="#divSemifinales">
                             <span class="fw-bold fs-2 text-dark ">Semifinales</span>
                         </button>
                     </li>
                     <li class="nav-item " role="presentation">
-                        <button id="FinalTab" type="button" class="nav-link" aria-selected="false"
+                        <button id="FinalTab" type="button" class="nav-link @showTabs[3]" aria-selected="false"
                                 data-bs-toggle="tab" role="tab" data-bs-target="#divFinal">
                             <span class="fw-bold fs-2 text-dark">Final</span>
                         </button>
@@ -97,7 +97,7 @@
 
                     @if (cantidadJugadores == 16)
                     {
-                        <div class="tab-pane fade col-lg-4 col-12 row d-flex px-4" id="divOctavos" role="tabpanel" aria-labelledby="OctavosTab">
+                        <div class="tab-pane fade @showTabs[0] col-sm-12 col-md-7 px-4" id="divOctavos" role="tabpanel" aria-labelledby="OctavosTab">
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 4))
                                 {
@@ -108,7 +108,7 @@
                     }
                     @if (cantidadJugadores >= 8)
                     {
-                        <div class="tab-pane fade col-lg-4 col-12 row d-flex px-4" id="divCuartos" role="tabpanel" aria-labelledby="CuartosTab">
+                        <div class="tab-pane fade @showTabs[1] col-sm-12 col-md-7 px-4" id="divCuartos" role="tabpanel" aria-labelledby="CuartosTab">
                             <div class="col-12 align-items-center">
                                 @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 3))
                                 {
@@ -117,50 +117,24 @@
                             </div>
                         </div>
                     }
-                    <div class="tab-pane fade show active col-lg-4 col-12 row d-flex px-4" id="divSemifinales" role="tabpanel" aria-labelledby="SemifinalesTab">
+                    <div class="tab-pane fade @showTabs[2] col-sm-12 col-md-7 px-4" id="divSemifinales" role="tabpanel" aria-labelledby="SemifinalesTab">
                         <div class="col-12 align-items-center">
-                            @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 2 ))
+                            @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 2))
                             {
                                 <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
                             }
                         </div>
                     </div>
 
-                    <div class="tab-pane fade col-3 row d-flex px-4" id="divFinal" role="tabpanel" aria-labelledby="FinalTab">
+                    <div class="tab-pane fade @showTabs[3] col-sm-12 col-md-7 px-4" id="divFinal" role="tabpanel" aria-labelledby="FinalTab">
                         <div class="col-12 align-items-center">
-                            @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 1 ))
+                            @foreach (var partida in Partidas.FindAll(p => p.Ronda == CantidadRondas() - 1))
                             {
                                 <Duelo Partida="partida" EsMiPartida="EsMiPartida(partida)" JugarBtnHandler="AlterarVistas" />
                             }
                         </div>
                     </div>
 
-                </div>
-
-                <div class="input-group d-flex justify-content-end">
-                    <button class="btn btn-warning bg-gradient btn-lg fw-bold" type="button" 
-                            data-bs-toggle="offcanvas" data-bs-target="#canvas" aria-controls="canvas">
-                        Ver progreso
-                    </button>
-                </div>
-
-                <div class="offcanvas offcanvas-bottom" tabindex="-1" id="canvas" >
-                    <div class="offcanvas-header">
-                        <span class="fs-4 fw-bold">Torneo</span>
-                        <button class="btn-close text-reset" type="button" data-bs-dismiss="offcanvas" />
-                    </div>
-                    <div class="offcanvas-body">
-                        @for(int i = Mensajes.Count - 1; i >= 0; i--)
-                        {
-                            string mensaje = Mensajes[i];
-
-                            <div class="card my-1 bg-light">
-                                <div class="card-body">
-                                    @mensaje
-                                </div>
-                            </div>
-                        }
-                    </div>
                 </div>
             </div>
         }
@@ -178,8 +152,14 @@
     private bool buscandoParticipantes;
     private bool mostrarTablero;
     private bool mostrarPartida;
+    private string[] showTabs = new string[4]
+    {
+        "", "", "", ""
+    };
 
     private int cantidadJugadores;
+    private int rondaActual;
+    private int tabActual;
 
     private Jugador Yo;
 
@@ -191,8 +171,6 @@
 
     private HubConnection torneoHubConnection;
 
-    private List<string> Mensajes = new List<string>();
-
     protected override void OnInitialized()
     {
         Random ran = new Random();
@@ -201,11 +179,6 @@
         jugador.Nickname = "Guest" + num;
         this.Yo = jugador;
         this.Jugadores = new List<Jugador>();
-    }
-
-    private void AgregarMensaje(string mensaje)
-    {
-        Mensajes.Add(mensaje);
     }
 
     protected override async Task OnInitializedAsync()
@@ -218,6 +191,10 @@
         torneoHubConnection.On<List<TorneoPartida>>("IniciarTorneo", IniciarTorneo);
         torneoHubConnection.On<List<TorneoPartida>>("ActualizarPartidas", ActualizarPartidas);
         torneoHubConnection.On<TorneoPartida>("RecibirMovimiento", RecibirMovimiento);
+        torneoHubConnection.On("Nollegara", () =>
+        {
+            Console.WriteLine("No sirve coño");
+        });
 
         await torneoHubConnection.StartAsync();
     }
@@ -243,8 +220,6 @@
             }
         }
 
-        AgregarMensaje("Torneo iniciado");
-
         StateHasChanged();
     }
 
@@ -253,14 +228,13 @@
         if (((partida.JugadorUno.Nickname == Yo.Nickname) && (partida.JugadorUno.ConnectionId == torneoHubConnection.ConnectionId)) ||
             ((partida.JugadorDos.Nickname == Yo.Nickname) && (partida.JugadorDos.ConnectionId == torneoHubConnection.ConnectionId)))
         {
-            Console.WriteLine($"J1:{partida.JugadorUno.Nickname}, J2:{partida.JugadorDos.Nickname}");
             return true;
         }
 
         return false;
     }
 
-    async Task ActualizarPartidas(List<TorneoPartida> partidas)
+    void ActualizarPartidas(List<TorneoPartida> partidas)
     {
         Partidas = partidas;
 
@@ -271,8 +245,20 @@
              p.JugadorDos.ConnectionId == Yo.ConnectionId) &&
              p.Ronda == ronda);
 
-        StateHasChanged();
+        foreach (var p in partidas)
+            Console.WriteLine(p);
 
+        if(rondaActual < ronda)
+        {
+            rondaActual = ronda;
+            tabActual = 4 - CantidadRondas() + rondaActual;
+            Toast.ShowInfo("Torneo avanza a la siguite ronda", "Ronda finalizada");
+        }
+
+        mostrarTablero = true;
+        mostrarPartida = false;
+        ActualizarTableroRonda();
+        StateHasChanged();
     }
 
     async Task RecibirMovimiento(TorneoPartida partida)
@@ -296,12 +282,32 @@
 
         enPantallaInicial = false;
         buscandoParticipantes = true;
+
+        tabActual = 4 - CantidadRondas();
+        ActualizarTableroRonda();
     }
 
     void AlterarVistas()
     {
         mostrarPartida = !mostrarPartida;
         mostrarTablero = !mostrarTablero;
+
+        if(mostrarPartida)
+        {
+            ActualizarTableroRonda();
+        }
+    }
+
+    void ActualizarTableroRonda()
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if (i == tabActual)
+                showTabs[i] = "show active";
+            else
+                showTabs[i] = "";
+            Console.WriteLine(showTabs[i]);
+        }
     }
 
     int CantidadRondas()

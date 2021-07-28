@@ -12,6 +12,13 @@ using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.Google;
 using MatchingGame.Shared.Models;
 using MatchingGame.Server.Services;
+using System.Net.Http;
+using System.Net.Http.Json;
+using MatchingGame.Server.DAL;
+using Microsoft.Extensions.Configuration;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using MatchingGame.Server.Entities;
 
 namespace MatchingGame.Server.Controllers
@@ -20,6 +27,9 @@ namespace MatchingGame.Server.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
+        private readonly Contexto _context;
+        private readonly IConfiguration _configuration;
+        private readonly IHttpClientFactory _httpClientFactory;
         private IUserService userService;
 
         public UserController(IUserService userService)
@@ -47,6 +57,27 @@ namespace MatchingGame.Server.Controllers
         {
             var respuesta = userService.ObtenerUsuarioPorJWT(jwtToken);
             return await Task.FromResult(respuesta);
+        }
+
+        [HttpGet("GoogleSignIn")]
+        public async Task GoogleSignIn()
+        {
+            await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme,
+                new AuthenticationProperties { RedirectUri = "/"});
+        }
+
+        [HttpGet("TwitterSignIn")]
+        public async Task TwitterSignIn()
+        {
+            await HttpContext.ChallengeAsync(TwitterDefaults.AuthenticationScheme,
+                new AuthenticationProperties { RedirectUri = "/" });
+        }
+
+        [HttpGet("FacebookSignIn")]
+        public async Task FacebookSignIn()
+        {         
+           await HttpContext.ChallengeAsync(FacebookDefaults.AuthenticationScheme, 
+               new AuthenticationProperties { RedirectUri = "/" });
         }
 
         //[HttpPost("login")]
@@ -251,61 +282,61 @@ namespace MatchingGame.Server.Controllers
         //    return _configuration["Authentication:Facebook:AppId"];
         //}
 
-        //[HttpPost("getfacebookjwt")]
-        //public async Task<ActionResult<AuthenticationResponse>> GetFacebookJWT([FromBody] FacebookAuthRequest facebookAuthRequest)
-        //{
-        //    // 1.create a token and an http client
-        //    string token = string.Empty;
-        //    var httpClient = _httpClientFactory.CreateClient();
+        /*[HttpPost("FacebookSignIn")]
+        public async Task<ActionResult<AuthenticationResponse>> GetFacebookJWT([FromBody] FacebookAuthRequest facebookAuthRequest)
+        {
+            // 1.create a token and an http client
+            string token = string.Empty;
+            var httpClient = _httpClientFactory.CreateClient();
 
-        //    // 2.get AppId and AppSecrete
-        //    string appId = _configuration["Authentication:Facebook:AppId"];
-        //    string appSecrete = _configuration["Authentication:Facebook:AppSecrete"];
-        //    Console.WriteLine("\nApp Id : " + appId);
-        //    Console.WriteLine("Secrete Id : " + appSecrete + "\n");
+            // 2.get AppId and AppSecrete
+            string appId = _configuration["Authentication:Facebook:AppId"];
+            string appSecrete = _configuration["Authentication:Facebook:AppSecrete"];
+            Console.WriteLine("\nApp Id : " + appId);
+            Console.WriteLine("Secrete Id : " + appSecrete + "\n");
 
-        //    // 3. generate an app access token
-        //    var appAccessRequest = $"https://graph.facebook.com/oauth/access_token?client_id={appId}&client_secret={appSecrete}&grant_type=client_credentials";
-        //    var appAccessTokenResponse = await httpClient.GetFromJsonAsync<FacebookAppAccessToken>(appAccessRequest);
-        //    Console.WriteLine("App Access Token : " + appAccessTokenResponse.Access_Token);
-        //    Console.WriteLine("Auth Request Access Token : " + facebookAuthRequest.AccessToken + "\n");
+            // 3. generate an app access token
+            var appAccessRequest = $"https://graph.facebook.com/oauth/access_token?client_id={appId}&client_secret={appSecrete}&grant_type=client_credentials";
+            var appAccessTokenResponse = await httpClient.GetFromJsonAsync<FacebookAppAccessToken>(appAccessRequest);
+            Console.WriteLine("App Access Token : " + appAccessTokenResponse.Access_Token);
+            Console.WriteLine("Auth Request Access Token : " + facebookAuthRequest.AccessToken + "\n");
 
-        //    // 4. validate the user access token
-        //    var userAccessValidationRequest = $"https://graph.facebook.com/debug_token?input_token={facebookAuthRequest.AccessToken}&access_token={appAccessTokenResponse.Access_Token}";
-        //    var userAccessTokenValidationResponse = await httpClient.GetFromJsonAsync<FacebookUserAccessTokenValidation>(userAccessValidationRequest);
-        //    Console.WriteLine("Is Token Valid : " + userAccessTokenValidationResponse.Data?.Is_Valid + "\n");
+            // 4. validate the user access token
+            var userAccessValidationRequest = $"https://graph.facebook.com/debug_token?input_token={facebookAuthRequest.AccessToken}&access_token={appAccessTokenResponse.Access_Token}";
+            var userAccessTokenValidationResponse = await httpClient.GetFromJsonAsync<FacebookUserAccessTokenValidation>(userAccessValidationRequest);
+            Console.WriteLine("Is Token Valid : " + userAccessTokenValidationResponse.Data?.Is_Valid + "\n");
 
-        //    if (!userAccessTokenValidationResponse.Data.Is_Valid) 
-        //        return BadRequest();
+            if (!userAccessTokenValidationResponse.Data.Is_Valid)
+                return BadRequest();
 
-        //    // 5. we've got a valid token so we can request user data from facebook
-        //    var userDataRequest = $"https://graph.facebook.com/v11.0/me?fields=id,email,first_name,last_name,name,gender,locale,birthday,picture&access_token={facebookAuthRequest.AccessToken}";
-        //    var facebookUserData = await httpClient.GetFromJsonAsync<FacebookUserData>(userDataRequest);
-        //    Console.WriteLine("Facebook Email Address : " + facebookUserData.Email + "\n");
+            // 5. we've got a valid token so we can request user data from facebook
+            var userDataRequest = $"https://graph.facebook.com/v11.0/me?fields=id,email,first_name,last_name,name,gender,locale,birthday,picture&access_token={facebookAuthRequest.AccessToken}";
+            var facebookUserData = await httpClient.GetFromJsonAsync<FacebookUserData>(userDataRequest);
+            Console.WriteLine("Facebook Email Address : " + facebookUserData.Email + "\n");
 
-        //    //6. try to find the user in the database or create a new account
-        //    var loggedInUser = await _context.Usuarios.Where(user => user.Email == facebookUserData.Email).FirstOrDefaultAsync();
+            //6. try to find the user in the database or create a new account
+            var loggedInUser = await _context.Usuarios.Where(user => user.Email == facebookUserData.Email).FirstOrDefaultAsync();
 
-        //    //7. generate the token
-        //    if(loggedInUser == null)
-        //    {
-        //        loggedInUser = new Usuarios();
-        //        loggedInUser.UsuarioId = _context.Usuarios.Max(user => user.UsuarioId) + 1;
-        //        loggedInUser.Email = User.FindFirstValue(ClaimTypes.Email);
-        //        loggedInUser.Clave = Utility.Encrypt(loggedInUser.Email);
-        //        loggedInUser.Source = "EXTL";
+            //7. generate the token
+            if (loggedInUser == null)
+            {
+                loggedInUser = new Usuarios();
+                loggedInUser.UsuarioId = _context.Usuarios.Max(user => user.UsuarioId) + 1;
+                loggedInUser.Email = User.FindFirstValue(ClaimTypes.Email);
+                loggedInUser.Clave = Utility.Encrypt(loggedInUser.Email);
+                //loggedInUser.Source = "EXTL";
 
-        //        _context.Usuarios.Add(loggedInUser);
-        //        await _context.SaveChangesAsync();
-        //    }
+                _context.Usuarios.Add(loggedInUser);
+                await _context.SaveChangesAsync();
+            }
 
-        //    token = GenerateJwtToken(loggedInUser);
-        //    Console.WriteLine("JWT : " + token + "\n");
+            token = GenerateJwtToken(loggedInUser);
+            Console.WriteLine("JWT : " + token + "\n");
 
-        //    httpClient.Dispose();
+            httpClient.Dispose();
 
-        //    return await Task.FromResult(new AuthenticationResponse() { Token = token });
-        //}
+            return await Task.FromResult(new AuthenticationResponse() { Token = token });
+        }*/
 
         ////Twitter Authentication using JWT
 
@@ -466,6 +497,88 @@ namespace MatchingGame.Server.Controllers
         //    var epochDateTime = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         //    var now = DateTime.Now;
         //    return (now - epochDateTime).TotalSeconds.ToString().Split('.')[0];
+        //}
+        //private string GenerateJwtToken(Usuarios user)
+        //{
+        //    //getting the secret key
+        //    string secretKey = _configuration["JWTSettings:SecretKey"];
+        //    var key = Encoding.ASCII.GetBytes(secretKey);
+
+        //    //create claims
+        //    var claimEmail = new Claim(ClaimTypes.Email, user.Email);
+        //    var claimNameIdentifier = new Claim(ClaimTypes.NameIdentifier, user.UsuarioId.ToString());
+
+        //    //create claimsIdentity
+        //    var claimsIdentity = new ClaimsIdentity(new[] { claimEmail, claimNameIdentifier }, "serverAuth");
+
+        //    // generate token that is valid for 7 days
+        //    var tokenDescriptor = new SecurityTokenDescriptor
+        //    {
+        //        Subject = claimsIdentity,
+        //        Expires = DateTime.UtcNow.AddDays(7),
+        //        SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+        //    };
+        //    //creating a token handler
+        //    var tokenHandler = new JwtSecurityTokenHandler();
+        //    var token = tokenHandler.CreateToken(tokenDescriptor);
+
+        //    //returning the token back
+        //    return tokenHandler.WriteToken(token);
+        //}
+        //[HttpPost("getfacebookjwt")]
+        //public async Task<ActionResult<AuthenticationResponse>> GetFacebookJWT([FromBody] FacebookAuthRequest facebookAuthRequest)
+        //{
+        //    // 1.create a token and an http client
+        //    string token = string.Empty;
+        //    var httpClient = _httpClientFactory.CreateClient();
+
+        //    // 2.get AppId and AppSecrete
+        //    string appId = _configuration["Authentication:Facebook:AppId"];
+        //    string appSecrete = _configuration["Authentication:Facebook:AppSecrete"];
+        //    Console.WriteLine("\nApp Id : " + appId);
+        //    Console.WriteLine("Secrete Id : " + appSecrete + "\n");
+
+        //    // 3. generate an app access token
+        //    var appAccessRequest = $"https://graph.facebook.com/oauth/access_token?client_id={appId}&client_secret={appSecrete}&grant_type=client_credentials";
+        //    var appAccessTokenResponse = await httpClient.GetFromJsonAsync<FacebookAppAccessToken>(appAccessRequest);
+        //    Console.WriteLine("App Access Token : " + appAccessTokenResponse.Access_Token);
+        //    Console.WriteLine("Auth Request Access Token : " + facebookAuthRequest.AccessToken + "\n");
+
+        //    // 4. validate the user access token
+        //    var userAccessValidationRequest = $"https://graph.facebook.com/debug_token?input_token={facebookAuthRequest.AccessToken}&access_token={appAccessTokenResponse.Access_Token}";
+        //    var userAccessTokenValidationResponse = await httpClient.GetFromJsonAsync<FacebookUserAccessTokenValidation>(userAccessValidationRequest);
+        //    Console.WriteLine("Is Token Valid : " + userAccessTokenValidationResponse.Data?.Is_Valid + "\n");
+
+        //    if (!userAccessTokenValidationResponse.Data.Is_Valid)
+        //        return BadRequest();
+
+        //    // 5. we've got a valid token so we can request user data from facebook
+        //    var userDataRequest = $"https://graph.facebook.com/v11.0/me?fields=id,email,first_name,last_name,name,gender,locale,birthday,picture&access_token={facebookAuthRequest.AccessToken}";
+        //    var facebookUserData = await httpClient.GetFromJsonAsync<FacebookUserData>(userDataRequest);
+        //    Console.WriteLine("Facebook Email Address : " + facebookUserData.Email + "\n");
+
+        //    //6. try to find the user in the database or create a new account
+        //    var loggedInUser = await _context.Usuarios.Where(user => user.Email == facebookUserData.Email).FirstOrDefaultAsync();
+
+        //    //7. generate the token
+        //    if (loggedInUser == null)
+        //    {
+        //        loggedInUser = new Usuarios();
+        //        loggedInUser.UsuarioId = _context.Usuarios.Max(user => user.UsuarioId) + 1;
+        //        loggedInUser.Email = User.FindFirstValue(ClaimTypes.Email);
+        //        loggedInUser.Clave = Utility.Encrypt(loggedInUser.Email);
+        //        //loggedInUser.Source = "EXTL";
+
+        //        _context.Usuarios.Add(loggedInUser);
+        //        await _context.SaveChangesAsync();
+        //    }
+
+        //    token = GenerateJwtToken(loggedInUser);
+        //    Console.WriteLine("JWT : " + token + "\n");
+
+        //    httpClient.Dispose();
+
+        //    return await Task.FromResult(new AuthenticationResponse() { Token = token });
         //}
     }
 }

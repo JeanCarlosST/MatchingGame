@@ -109,5 +109,52 @@ namespace MatchingGame.Shared
         {
             this.Ronda = ronda;
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() != typeof(TorneoPartida))
+                return false;
+
+            Partida partida = (TorneoPartida)obj;
+
+            if (!JugadorUno.Equals(partida.JugadorUno))
+                return false;
+
+            if (!JugadorDos.Equals(partida.JugadorDos))
+                return false;
+
+            if (Modo != partida.Modo)
+                return false;
+
+            if (Dificultad != partida.Dificultad)
+                return false;
+
+            if (ParesTotales != partida.ParesTotales)
+                return false;
+
+            //if (Iniciada != partida.Iniciada)
+            //    return false;
+
+            if (Terminada != partida.Terminada)
+                return false;
+
+            return true;
+        }
+
+        public override string ToString()
+        {
+            string ganador = null;
+
+            if (JugadorUnoDetalle.Tiempo < JugadorDosDetalle.Tiempo)
+                ganador = JugadorUno.Nickname;
+
+            if (JugadorDosDetalle.Tiempo < JugadorUnoDetalle.Tiempo)
+                ganador = JugadorDos.Nickname;
+
+            if (!string.IsNullOrEmpty(ganador))
+                return $"PartidaGanador: {ganador}, Ronda: {Ronda}";
+            else
+                return $"Partida; J1: {JugadorUno.Nickname}, J2: {JugadorDos.Nickname}";
+        }
     }
 }
