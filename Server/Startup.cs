@@ -41,7 +41,7 @@ namespace MatchingGame.Server
             services.AddRazorPages();
             services.AddSignalR();
             services.AddDbContext<Context>();
-            services.AddScoped<IPlayerService, PlayerService>();
+            
             services.AddResponseCompression(opts =>
             {
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
@@ -98,6 +98,7 @@ namespace MatchingGame.Server
 
             services.AddScoped<IJwtUtils, JwtUtils>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPlayerService, PlayerService>();
 
             services.AddSingleton<GameManager>();
         }

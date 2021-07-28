@@ -26,6 +26,7 @@ namespace MatchingGame.Server.Entities
             Clave = usuarioRegistro.Clave;
             Nombre = usuarioRegistro.Nombres;
             NickName = usuarioRegistro.NickName;
+            Activo = true;
         }
 
         public int UsuarioId { get; set; }

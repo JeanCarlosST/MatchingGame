@@ -7,7 +7,23 @@ using MatchingGame.Shared;
 
 namespace MatchingGame.Server.Services
 {
-    public class PlayerService 
+
+    public interface IPlayerService
+    {
+        public void GetRecordRanking(Modo modo, Dificultad dificultad);
+        public void GetUserRanking();
+        public bool GuardarPartidaSolo(Partida partida, string jwtToken);
+        public bool GuardarPartida1v1(Partida partida, string jwtToken);
+        public void GetPlayerStats(string jwtToken);
+        public void GetPlayerFriends(string jwtToken);
+        public void GetPlayerRequests(string jwtToken);
+        public void CrearTorneo(Torneo torneo);
+        public void GuardarPartidaTorneo(TorneoPartida torneoPartida);
+        public void CerrarTorneo(Torneo torneo);
+    }
+
+
+    public class PlayerService : IPlayerService
     {
         private readonly Context context;
         private readonly IJwtUtils jwtUtils;
