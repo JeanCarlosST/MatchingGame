@@ -6,6 +6,11 @@ using Blazored.LocalStorage;
 using System.Threading.Tasks;
 using System.Net.Http;
 using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using BlazorFluentUI;
 using Blazored.Toast;
 using MatchingGame.Client.Models;
 using MatchingGame.Client.Handler;
@@ -20,6 +25,7 @@ namespace MatchingGame.Client
             
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
+            builder.Services.AddBlazorFluentUI();
 
             builder.Services.AddOptions();
             builder.Services.AddAuthorizationCore();

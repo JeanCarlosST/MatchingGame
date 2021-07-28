@@ -18,7 +18,7 @@
                             <img class="rounded-circle" src="/Images/tempLogo.jpg" width="120" />
                         </div>
                         <span class="fs-4 mt-2">
-                            
+
                             <b>Inicio de sesión</b>
                         </span>
                     </div>
@@ -38,13 +38,13 @@
 
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" @bind="usuarioLogin.Recuerdame">
-                            <label class="form-check-label" for="customControlInline" >Recordarme</label>
+                            <label class="form-check-label" for="customControlInline">Recordarme</label>
                         </div>
                         <div class="d-flex flex-column mt-3">
-                            <button type="button" class="btn btn-success d-flex justify-content-center" 
+                            <button type="button" class="btn btn-success d-flex justify-content-center"
                                     @onclick="ValidarLogin">
-                                
-                                @if(iniciandoSesion)
+
+                                @if (iniciandoSesion)
                                 {
                                     <span>Iniciando sesión</span>
                                     <div class="ml-2">
@@ -59,7 +59,24 @@
                         </div>
                     </form>
                 </div>
-
+                <div class="d-flex flex-column mt-3">
+                    <button type="button" class="btn btn-success d-flex justify-content-center"
+                            @onclick="GoogleSignIn">
+                        Login Google
+                    </button>
+                </div>
+                <div class="d-flex flex-column mt-3">
+                    <button type="button" class="btn btn-success d-flex justify-content-center"
+                            @onclick="TwitterSignIn">
+                        Login TW
+                    </button>
+                </div>
+                <div class="d-flex flex-column mt-3">
+                    <button type="button" class="btn btn-success d-flex justify-content-center"
+                            @onclick="FacebookJWT">
+                        Login FB
+                    </button>
+                </div>
                 <div class="my-4 text-center">
                     ¿No tienes una cuenta? <a href="/register">Regístrate</a>
                 </div>
@@ -96,5 +113,28 @@
         }
 
         iniciandoSesion = false;
+    }
+
+    public void GoogleSignIn()
+    {
+        NavigationManager.NavigateTo("user/GoogleSignIn", true);
+    }
+
+    public void TwitterSignIn()
+    {
+        NavigationManager.NavigateTo("user/TwitterSignIn", true);
+    }
+
+    /*public void FacebookSignIn()
+    {
+        NavigationManager.NavigateTo("user/FacebookSignIn", true);
+    }*/
+    public void FacebookJWT()
+    {
+        //var appIdAndRedirectUri = (await _loginViewModel.GetFacebookAppIDAndRedirectUriAsync()).Split('&');
+
+        var accessTokenRequest = $"https://www.facebook.com/v11.0/dialog/oauth?response_type=token&client_id=303208311586052&redirect_uri=https://localhost:44363/FacebookAuth";
+
+       NavigationManager.NavigateTo(accessTokenRequest, true);
     }
 }
