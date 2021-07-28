@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @inject IToastService Toast
+@inject AuthenticationStateProvider AuthStateProvider
 @implements IAsyncDisposable
 
 
@@ -170,7 +171,7 @@
     private string[] showTabs = new string[4]
     {
         "", "", "", ""
-        };
+            };
 
     private int cantidadJugadores;
     private int rondaActual;
@@ -190,17 +191,30 @@
     {
         Random ran = new Random();
         TorneoJugador jugador = new TorneoJugador();
-        int num = 10000 + ran.Next(90000 - 1);
-        jugador.Nickname = "Guest" + num;
+        //int num = 10000 + ran.Next(90000 - 1);
+
         this.Yo = jugador;
         this.Jugadores = new List<TorneoJugador>();
     }
 
+    async Task<string> ObtenerNicknameUsuario()
+    {
+        var authState = await ((CustomAuthenticationStateProvider)AuthStateProvider).GetAuthenticationStateAsync();
+        var usuario = authState.User;
+
+        if (usuario.Claims.Count() > 0)
+            return usuario.Claims?.First(c => c.Type == ClaimTypes.Name).Value;
+
+        return "";
+    }
+
     protected override async Task OnInitializedAsync()
     {
+        Yo.Nickname = await ObtenerNicknameUsuario();
+
         torneoHubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/torneo_hub"))
-            .Build();
+        .WithUrl(NavigationManager.ToAbsoluteUri("/torneo_hub"))
+        .Build();
 
         torneoHubConnection.On<List<TorneoJugador>>("RecibirJugadores", RecibirJugadores);
         torneoHubConnection.On<List<TorneoPartida>>("IniciarTorneo", IniciarTorneo);

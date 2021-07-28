@@ -343,7 +343,7 @@
     protected override async Task OnInitializedAsync()
     {
         Random ran = new Random();
-        Yo.Nickname = "Guest" + (10000 + ran.Next(90000 - 1));//await ObtenerNicknameUsuario();
+        Yo.Nickname = await ObtenerNicknameUsuario();
         await ConnectToHub();
     }
 
