@@ -55,27 +55,21 @@
                                 {
                                     <span>Iniciar sesión</span>
                                 }
-                            </button>
+                                </button>
+                                <button type="button" class="btn btn-light d-flex justify-content-center mt-2"
+                                        @onclick="GoogleSignIn">
+                                    Iniciar con Google
+                                </button>
+                                <button type="button" class="btn btn-secondary d-flex justify-content-center mt-2"
+                                        @onclick="TwitterSignIn">
+                                    Iniciar con TW
+                                </button>
+                                <button type="button" class="btn btn-primary d-flex justify-content-center mt-2"
+                                        @onclick="FacebookJWT">
+                                    Iniciar con FB
+                                </button>
                         </div>
                     </form>
-                </div>
-                <div class="d-flex flex-column mt-3">
-                    <button type="button" class="btn btn-success d-flex justify-content-center"
-                            @onclick="GoogleSignIn">
-                        Login Google
-                    </button>
-                </div>
-                <div class="d-flex flex-column mt-3">
-                    <button type="button" class="btn btn-success d-flex justify-content-center"
-                            @onclick="TwitterSignIn">
-                        Login TW
-                    </button>
-                </div>
-                <div class="d-flex flex-column mt-3">
-                    <button type="button" class="btn btn-success d-flex justify-content-center"
-                            @onclick="FacebookJWT">
-                        Login FB
-                    </button>
                 </div>
                 <div class="my-4 text-center">
                     ¿No tienes una cuenta? <a href="/register">Regístrate</a>
@@ -99,7 +93,7 @@
     {
         iniciandoSesion = true;
         var usuarioDevuelto = await UserService.LoginAsync(usuarioLogin);
-        if(usuarioDevuelto != null)
+        if (usuarioDevuelto != null)
         {
             await ((CustomAuthenticationStateProvider)AuthStateProvider).MarcarUsuarioLogeado(usuarioDevuelto);
             await Task.Delay(1000);
@@ -135,6 +129,6 @@
 
         var accessTokenRequest = $"https://www.facebook.com/v11.0/dialog/oauth?response_type=token&client_id=303208311586052&redirect_uri=https://localhost:44363/FacebookAuth";
 
-       NavigationManager.NavigateTo(accessTokenRequest, true);
+        NavigationManager.NavigateTo(accessTokenRequest, true);
     }
 }
