@@ -120,9 +120,6 @@
   <data name="AzureCN" xml:space="preserve">
     <value>Server=tcp:wafotestingserver.database.windows.net,1433;Initial Catalog=MatchingGameDB;Persist Security Info=False;User ID=Wafo20;Password=3h466T570;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;</value>
   </data>
-  <data name="LocalCN" xml:space="preserve">
-    <value>Server=localhost;Database=MatchingGameDB;User=sa;Password=hpt123456789;Trusted_Connection=False;</value>
-  </data>
   <data name="SqLiteCN" xml:space="preserve">
     <value>Data Source=Data\FMPrueba.db</value>
   </data>

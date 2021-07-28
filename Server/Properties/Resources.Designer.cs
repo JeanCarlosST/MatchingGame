@@ -70,15 +70,6 @@ namespace MatchingGame.Server.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Server=localhost;Database=MatchingGameDB;User=sa;Password=hpt123456789;Trusted_Connection=False;.
-        /// </summary>
-        internal static string LocalCN {
-            get {
-                return ResourceManager.GetString("LocalCN", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Data Source=Data\FMPrueba.db.
         /// </summary>
         internal static string SqLiteCN {
