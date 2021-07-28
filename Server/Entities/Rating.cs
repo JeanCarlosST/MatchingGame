@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 #nullable disable
 
@@ -7,7 +8,8 @@ namespace MatchingGame.Server.Entities
 {
     public partial class Rating
     {
-        public int Rating1 { get; set; }
+        [Key]
+        public int RatingId { get; set; }
         public int UsuarioId { get; set; }
         public int RatingValue { get; set; }
 

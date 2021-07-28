@@ -1,4 +1,5 @@
 ﻿using MatchingGame.Server.DAL;
+using MatchingGame.Server.Entities;
 using MatchingGame.Shared.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -13,29 +14,27 @@ namespace MatchingGame.Server.Services
 {
     public interface IUserService
     {
-        Usuarios Autenticar(LoginModel usuarioLogin);
+        Usuario Autenticar(LoginModel usuarioLogin);
         bool RegistrarUsuario(RegisterModel usarioRegistro);
-        public Usuarios ObtenerUsuarioPorJWT(string jwtToken);
-        public int ValidarRegistro(RegisterModel usuarioRegistro);
-
+        public Usuario ObtenerUsuarioPorJWT(string jwtToken);
     }
 
     public class UserService : IUserService
     {
-        private Contexto contexto;
+        private Context contexto;
         private IJwtUtils jwtUtils;
         private readonly AppSettings appSettings;
 
-        public UserService(Contexto contexto, IJwtUtils jwtUtils, IOptions<AppSettings> appSettings)
+        public UserService(Context contexto, IJwtUtils jwtUtils, IOptions<AppSettings> appSettings)
         {
             this.contexto = contexto;
             this.jwtUtils = jwtUtils;
             this.appSettings = appSettings.Value;
         }
 
-        public Usuarios Autenticar(LoginModel usuarioLogin)
+        public Usuario Autenticar(LoginModel usuarioLogin)
         {
-            Usuarios usuario = 
+            Usuario usuario = 
                 contexto.Usuarios
                     .Where(u => u.Email == usuarioLogin.Email && u.Clave == usuarioLogin.Clave)
                     .FirstOrDefault();
@@ -56,7 +55,7 @@ namespace MatchingGame.Server.Services
             
             if (emailAddressExists == null)
             {
-                Usuarios usuario = new Usuarios(usuarioRegistro);
+                Usuario usuario = new Usuario(usuarioRegistro);
                 contexto.Usuarios.Add(usuario);
                 contexto.SaveChanges();
                 return true;
@@ -65,12 +64,12 @@ namespace MatchingGame.Server.Services
             return false;
         }
 
-        public Usuarios ObtenerUsuarioPorJWT(string jwtToken)
+        public Usuario ObtenerUsuarioPorJWT(string jwtToken)
         {
-            int? id = jwtUtils.ValidarJWTToken(jwtToken);
-            Usuarios usuario = null;
+            string id = jwtUtils.ObtenerUsuarioPorJWT(jwtToken);
+            Usuario usuario = null;
 
-            if (id != null)
+            if (!String.IsNullOrEmpty(id))
             {
                 usuario = contexto.Usuarios
                     .Where(u => u.UsuarioId == Convert.ToInt32(id))
