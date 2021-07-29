@@ -1,4 +1,5 @@
 ﻿@page "/myprofile"
+@inject NavigationManager NavigationManager
 
 <div class="container">
 
@@ -198,6 +199,9 @@
     </div>
 </div>
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
+
     public class tempUser
     {
         public int id { get; set; }
@@ -214,6 +218,12 @@
     public tempUser Usuario = new tempUser();
     bool Estadisticas = false;
     string clase => Estadisticas ? "success" : "warning";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!(await AuthStateTask).User.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/");
+    }
 
     protected override void OnInitialized()
     {

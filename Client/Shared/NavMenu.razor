@@ -21,16 +21,20 @@
                         <span class="oi oi-home"></span><b>Solo</b>
                     </NavLink>
                 </li>
-                <li class="nav-item px-1">
-                    <NavLink class="nav-link" href="/one_vs_one">
-                        <span class="oi oi-people" aria-hidden="true"></span><b>1vs1</b>
-                    </NavLink>
-                </li>
-                <li class="nav-item px-1">
-                    <NavLink class="nav-link" href="/torneos">
-                        <span class="oi oi-globe" aria-hidden="true"></span><b>Torneos</b>
-                    </NavLink>
-                </li>
+                <AuthorizeView>
+                    <Authorized>
+                        <li class="nav-item px-1">
+                            <NavLink class="nav-link" href="/one_vs_one">
+                                <span class="oi oi-people" aria-hidden="true"></span><b>1vs1</b>
+                            </NavLink>
+                        </li>
+                        <li class="nav-item px-1">
+                            <NavLink class="nav-link" href="/torneos">
+                                <span class="oi oi-globe" aria-hidden="true"></span><b>Torneos</b>
+                            </NavLink>
+                        </li>
+                    </Authorized>
+                </AuthorizeView>
                 @*<li class="nav-item px-1">
                     <NavLink class="nav-link" href="/rankings">
                         <span class="oi oi-signal"></span><b>Rankings</b>
@@ -83,6 +87,8 @@
 </nav>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
 
     bool collapseNavMenu = true;
     bool modalCerrarSesion;
@@ -97,11 +103,20 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await ((CustomAuthenticationStateProvider)AuthStateProvider).GetAuthenticationStateAsync();
-        var usuario = authState.User;
+        var usuario = (await AuthStateTask).User;
 
         if (usuario.Claims.Count() > 0)
             NombreUsuario = usuario.Claims?.First(c => c.Type == ClaimTypes.Name).Value;
+    }
+
+    async Task<string> ObtenerNicknameUsuario()
+    {
+        var usuario = (await AuthStateTask).User;
+
+        if (usuario.Claims.Count() > 0)
+            return usuario.Claims?.First(c => c.Type == ClaimTypes.Name).Value;
+
+        return "";
     }
 
     void MostrarModalCerrarSesion()

@@ -1,6 +1,6 @@
 ﻿@page "/userprofile"
 @page "/userprofile/{UsuarioId:int}"
-
+@inject NavigationManager NavigationManager 
 
 <div class="container">
 
@@ -107,7 +107,16 @@
     [Parameter]
     public int UsuarioId { get; set; }
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
+
     public Pages.Profile.MyProfile.tempUser Usuario = new Pages.Profile.MyProfile.tempUser();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!(await AuthStateTask).User.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/");
+    }
 
     protected override void OnInitialized()
     {

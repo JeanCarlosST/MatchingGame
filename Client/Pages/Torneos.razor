@@ -4,7 +4,6 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager NavigationManager
 @inject IToastService Toast
-@inject AuthenticationStateProvider AuthStateProvider
 @implements IAsyncDisposable
 
 
@@ -163,6 +162,9 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthStateTask { get; set; }
+
     private bool enPantallaInicial = true;
     private bool buscandoParticipantes;
     private bool mostrarTablero;
@@ -199,8 +201,7 @@
 
     async Task<string> ObtenerNicknameUsuario()
     {
-        var authState = await ((CustomAuthenticationStateProvider)AuthStateProvider).GetAuthenticationStateAsync();
-        var usuario = authState.User;
+        var usuario = (await AuthStateTask).User;
 
         if (usuario.Claims.Count() > 0)
             return usuario.Claims?.First(c => c.Type == ClaimTypes.Name).Value;
@@ -210,6 +211,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (!(await AuthStateTask).User.Identity.IsAuthenticated)
+            NavigationManager.NavigateTo("/");
+
         Yo.Nickname = await ObtenerNicknameUsuario();
 
         torneoHubConnection = new HubConnectionBuilder()
@@ -370,6 +374,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        await torneoHubConnection.DisposeAsync();
+        if(torneoHubConnection != null)
+            await torneoHubConnection.DisposeAsync();
     }
 }
